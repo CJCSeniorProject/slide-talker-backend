@@ -1,0 +1,4 @@
+[global.limits]
+form = 1073741824
+file = 1073741824
+data-form = 1073741824
