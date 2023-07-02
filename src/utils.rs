@@ -1,9 +1,15 @@
+use ffmpeg_next as ffmpeg;
 use rand::Rng;
 use std::{
   process::Command,
   time::{SystemTime, UNIX_EPOCH},
 };
-use ffmpeg_next as ffmpeg;
+
+use lettre::{
+  message::header::ContentType, transport::smtp::authentication::Credentials, Message,
+  SmtpTransport, Transport,
+};
+use std::{fs, path::Path};
 
 pub fn generate_rand_code() -> String {
   let mut rng = rand::thread_rng();
@@ -30,7 +36,7 @@ pub fn generate_rand_code() -> String {
   code
 }
 
-pub fn mp4_to_wav(mp4: &str, output_path: &str) -> bool {
+pub fn mp4_to_wav(mp4: &str, output_path: &str) -> Result<(), String> {
   let mut command = Command::new("ffmpeg");
   command
     .arg("-i")
@@ -48,13 +54,16 @@ pub fn mp4_to_wav(mp4: &str, output_path: &str) -> bool {
 
   let status = command.status().expect("failed to execute mp4_to_wav");
   if status.success() {
-    return true;
+    Ok(())
   } else {
-    panic!("ffmpeg convert mp4 to wav failed: {:?}", command);
+    Err(String::from(format!(
+      "ffmpeg convert mp4 to wav failed: {:?}",
+      command
+    )))
   }
 }
 
-pub fn run_gen_video_python(wav: &str, avatar: &str, output: &str) {
+pub fn run_gen_video_python(wav: &str, avatar: &str, output: &str) -> Result<(), String> {
   let mut command = Command::new("zsh");
   command
     .arg("-c")
@@ -65,8 +74,12 @@ pub fn run_gen_video_python(wav: &str, avatar: &str, output: &str) {
     .expect("failed to execute run_gen_video_python");
   if status.success() {
     println!("python gen video success");
+    Ok(())
   } else {
-    panic!("python gen video failed: {:?}", command);
+    Err(String::from(format!(
+      "python gen video failed: {:?}",
+      command
+    )))
   }
 }
 
@@ -83,9 +96,10 @@ fn get_video_decoder(
   let input = match ictx
     .streams()
     .best(ffmpeg::media::Type::Video)
-    .ok_or(ffmpeg::Error::StreamNotFound) {
-      Ok(input) => input,
-      Err(e) => return Err(e.into()),
+    .ok_or(ffmpeg::Error::StreamNotFound)
+  {
+    Ok(input) => input,
+    Err(e) => return Err(e.into()),
   };
 
   let context_decoder = ffmpeg::codec::context::Context::from_parameters(input.parameters())?;
@@ -101,16 +115,11 @@ pub fn merge_video_and_avatar_video(
   x: &f32,
   y: &f32,
   shape: &String,
-) {
+) -> Result<(), String> {
   let video_decoder = match get_video_decoder(&video_path) {
     Ok(decoder) => decoder,
-    Err(e) => panic!("get video failed: {:?}", e),
+    Err(e) => return Err(String::from(format!("get video failed: {:?}", e))),
   };
-  // println!("avatar_video_path: {}", avatar_video_path);
-  // let avatar_video_decoder = match get_video_decoder(&avatar_video_path) {
-  //   Ok(decoder) => decoder,
-  //   Err(e) => panic!("get avatar video failed: {:?}", e),
-  // };
 
   let video_size = (video_decoder.width(), video_decoder.height());
   // let avatar_video_size = (avatar_video_decoder.width(), avatar_video_decoder.height());
@@ -140,10 +149,105 @@ pub fn merge_video_and_avatar_video(
     ))
     .arg(&result_path);
 
-  let status = command.status().expect("failed to execute merge_video_and_avatar_video");
+  let status = command
+    .status()
+    .expect("failed to execute merge_video_and_avatar_video");
   if status.success() {
     println!("ffmpeg merge avatar and video success");
+    Ok(())
   } else {
-    panic!("ffmpeg merge avatar and video failed: {:?}", command);
+    Err(String::from(format!(
+      "ffmpeg merge avatar and video failed: {:?}",
+      command
+    )))
+  }
+}
+
+pub fn send_email(dir_path: &String, code: &String, failed: bool) {
+  let email_path = format!("{}/email.txt", &dir_path);
+
+  if Path::new(&email_path).exists() {
+    let email = fs::read_to_string(&email_path).expect("Something went wrong reading the file");
+    let email: Vec<&str> = email.split("\n").collect();
+    let email = email[0];
+
+    let body = match failed {
+      false => format!(
+        "Hi, your video is ready, please download it from: http://localhost:3000/{}",
+        code
+      ),
+      true => String::from("Your video generation has failed"),
+    };
+
+    let email_builder = Message::builder()
+      .from("jimmyhealer <yahing6066@gmail.com>".parse().unwrap())
+      .reply_to("jimmyhealer <yahing6066@gmail.com>".parse().unwrap())
+      .to(email.parse().unwrap())
+      .subject("Gen video done!")
+      .header(ContentType::TEXT_PLAIN)
+      .body(body)
+      .unwrap();
+
+    let creds = Credentials::new(
+      "yahing6066@gmail.com".to_owned(),
+      "bdfecnvwtvjksjco".to_owned(),
+    );
+
+    // Open a remote connection to gmail
+    let mailer = SmtpTransport::relay("smtp.gmail.com")
+      .unwrap()
+      .credentials(creds)
+      .build();
+
+    match mailer.send(&email_builder) {
+      Ok(_) => println!("Email sent successfully!"),
+      Err(e) => panic!("Could not send email: {e:?}"),
+    }
+  } else {
+    println!("no email");
+  }
+}
+
+pub fn gen_subtitle(
+  dir_path: &String,
+  video_path: &String,
+  video_subtitle_path: &String,
+) -> Result<(), String> {
+  let mut command = Command::new("zsh");
+  command
+    .arg("-c")
+    .arg(format!("source ~/.zshrc && conda activate sadtalker && python3 ~/Documents/SadTalker/ai_subtitle.py --file {} --save_dir {}", video_path, dir_path));
+
+  let status = command.status().expect("failed to execute gen_ai_subtitle");
+  if status.success() {
+    println!("python gen subtitle success");
+  } else {
+    return Err(String::from(format!(
+      "python gen subtitle failed: {:?}",
+      command
+    )));
+  }
+
+  let mut command = Command::new("ffmpeg");
+  command
+    .arg("-i")
+    .arg(&video_path)
+    .arg("-vf")
+    .arg(format!("subtitles={}/output_crt.srt", dir_path))
+    .arg("-y")
+    .arg(&video_subtitle_path);
+
+  let status = command
+    .status()
+    .expect("failed to execute composite_subtitle");
+
+  if status.success() {
+    println!("ffmpeg composite subtitle success");
+    Ok(())
+  } else {
+    Err(String::from(format!(
+      "ffmpeg composite subtitle failed: {:?}",
+      command
+    )))
   }
 }

@@ -1,6 +1,6 @@
 use crate::utils;
 
-use rocket::{form::Form, http::Status, response::status::NotFound, serde::json::Json};
+use rocket::{form::Form, http::Status, serde::json::Json};
 use serde::Serialize;
 use std::{fs::create_dir_all, io::Write, path::Path};
 
@@ -46,6 +46,7 @@ pub async fn gen_video(
     x: data.x,
     y: data.y,
     shape: data.shape.to_owned(),
+    subtitle: data.subtitle,
   };
 
   tx.try_send(request)
@@ -92,11 +93,24 @@ pub async fn get_video(code: &str) -> String {
 }
 
 #[get("/download/<code>")]
-pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, NotFound<String>> {
+pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, Status> {
+  let path_str = format!("tmp/{}/result_subtitle.mp4", code);
+  let path = Path::new(path_str.as_str());
+
+  if path.exists() {
+    return rocket::fs::NamedFile::open(path)
+      .await
+      .map_err(|_| Status::InternalServerError);
+  }
+
   let path_str = format!("tmp/{}/result.mp4", code);
   let path = Path::new(path_str.as_str());
 
-  rocket::fs::NamedFile::open(path)
-    .await
-    .map_err(|_| NotFound(format!("File Not Found: {}", code)))
+  if path.exists() {
+    rocket::fs::NamedFile::open(path)
+      .await
+      .map_err(|_| Status::InternalServerError)
+  } else {
+    Err(Status::NotFound)
+  }
 }

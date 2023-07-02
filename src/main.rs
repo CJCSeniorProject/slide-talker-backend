@@ -7,9 +7,9 @@ mod video;
 use video::api::{download, gen_video, get_video, set_email};
 
 use rocket::{
+  fairing::{Fairing, Info, Kind},
   http::Header,
   {Request, Response},
-  fairing::{Fairing, Info, Kind},
 };
 
 pub struct CORS;
@@ -36,7 +36,7 @@ impl Fairing for CORS {
 
 #[tokio::main]
 async fn main() {
-  let (tx, rx) = tokio::sync::mpsc::channel(100);
+  let (tx, rx) = tokio::sync::mpsc::channel(3);
   tokio::spawn(video::start_worker(rx));
 
   let server = rocket::build()

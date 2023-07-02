@@ -6,6 +6,7 @@ pub struct Request {
   pub x: f32,
   pub y: f32,
   pub shape: String,
+  pub subtitle: bool,
 }
 
 #[derive(FromForm)]
@@ -15,6 +16,7 @@ pub struct GenVideoRequestForm<'a> {
   pub x: f32,
   pub y: f32,
   pub shape: &'a str,
+  pub subtitle: bool,
 }
 
 #[derive(FromForm)]
