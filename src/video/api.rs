@@ -56,12 +56,14 @@ pub async fn gen_video(
 }
 
 #[post("/api/gen/<code>", data = "<data>")]
-pub async fn set_email(code: String, data: Form<SetEmailRequestForm<'_>>) -> &'static str {
+pub async fn set_email(code: String, data: Form<SetEmailRequestForm<'_>>) -> Result<(), Status> {
   let email = data.email;
 
   // check email
   if let Err(_) = email.parse::<lettre::message::Mailbox>() {
-    return "Wrong Email";
+    println!("Wrong Email");
+    // return "Wrong Email";
+    return Err(Status::UnprocessableEntity);
   }
 
   // write email to tmp/<code>/email.txt
@@ -73,10 +75,12 @@ pub async fn set_email(code: String, data: Form<SetEmailRequestForm<'_>>) -> &'s
   if let Ok(file) = std::fs::File::create(file_path) {
     let mut writer = std::io::BufWriter::new(file);
     if let Ok(_) = writer.write_all(email.as_bytes()) {
-      return "OK";
+      // return "OK";
+      return Ok(());
     }
   }
-  "Error: Failed to write email"
+  // "Error: Failed to write email"
+  Err(Status::InternalServerError)
 }
 
 #[get("/api/gen/<code>")]

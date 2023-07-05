@@ -1,8 +1,8 @@
 use crate::utils;
 
-mod model;
-use model::Request;
 pub mod api;
+pub mod model;
+use model::Request;
 
 pub async fn start_worker(mut rx: tokio::sync::mpsc::Receiver<Request>) {
   while let Some(request) = rx.recv().await {

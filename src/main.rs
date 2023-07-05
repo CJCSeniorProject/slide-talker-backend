@@ -7,6 +7,7 @@ mod video;
 use video::api::{download, gen_video, get_video, set_email};
 
 use rocket::{
+  catch,
   fairing::{Fairing, Info, Kind},
   http::Header,
   {Request, Response},
@@ -34,12 +35,19 @@ impl Fairing for CORS {
   }
 }
 
+#[catch(422)]
+fn handle_unprocessable_entity(_: &Request) -> &'static str {
+  println!("test");
+  "Unprocessable Entity"
+}
+
 #[tokio::main]
 async fn main() {
-  let (tx, rx) = tokio::sync::mpsc::channel(3);
+  let (tx, rx) = tokio::sync::mpsc::channel(100);
   tokio::spawn(video::start_worker(rx));
 
   let server = rocket::build()
+    .register("/", catchers![handle_unprocessable_entity])
     .mount("/", routes![gen_video, set_email, get_video, download])
     .attach(CORS)
     .manage(tx.clone())
