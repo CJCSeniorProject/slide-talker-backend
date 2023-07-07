@@ -1,6 +1,6 @@
 use crate::utils;
 
-use rocket::{form::Form, http::Status, serde::json::Json};
+use rocket::{form::Form, get, http::Status, post, serde::json::Json};
 use serde::Serialize;
 use std::{fs::create_dir_all, io::Write, path::Path};
 
@@ -62,7 +62,6 @@ pub async fn set_email(code: String, data: Form<SetEmailRequestForm<'_>>) -> Res
   // check email
   if let Err(_) = email.parse::<lettre::message::Mailbox>() {
     println!("Wrong Email");
-    // return "Wrong Email";
     return Err(Status::UnprocessableEntity);
   }
 
@@ -75,11 +74,9 @@ pub async fn set_email(code: String, data: Form<SetEmailRequestForm<'_>>) -> Res
   if let Ok(file) = std::fs::File::create(file_path) {
     let mut writer = std::io::BufWriter::new(file);
     if let Ok(_) = writer.write_all(email.as_bytes()) {
-      // return "OK";
       return Ok(());
     }
   }
-  // "Error: Failed to write email"
   Err(Status::InternalServerError)
 }
 

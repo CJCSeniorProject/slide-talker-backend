@@ -1,6 +1,9 @@
-use rocket::form::{self, Error};
-use rocket::fs::TempFile;
-use rocket::http::ContentType;
+use rocket::{
+  form::{self, Error},
+  fs::TempFile,
+  http::ContentType,
+  FromForm,
+};
 
 #[derive(Debug)]
 pub struct Request {

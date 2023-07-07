@@ -1,17 +1,13 @@
-#[macro_use]
-extern crate rocket;
-
 mod utils;
 mod video;
 
-use video::api::{download, gen_video, get_video, set_email};
-
 use rocket::{
-  catch,
+  self, catch, catchers,
   fairing::{Fairing, Info, Kind},
   http::Header,
-  {Request, Response},
+  routes, {Request, Response},
 };
+use video::api::{download, gen_video, get_video, set_email};
 
 pub struct CORS;
 
