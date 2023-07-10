@@ -7,6 +7,7 @@ use rocket::{
   http::Header,
   routes, {Request, Response},
 };
+use std::env;
 use video::api::{download, gen_video, get_video, set_email};
 
 pub struct CORS;
@@ -33,12 +34,18 @@ impl Fairing for CORS {
 
 #[catch(422)]
 fn handle_unprocessable_entity(_: &Request) -> &'static str {
-  println!("test");
   "Unprocessable Entity"
 }
 
 #[tokio::main]
 async fn main() {
+  if env::var("RUST_LOG").is_err() {
+    env::set_var("RUST_LOG", "debug");
+  }
+  env_logger::builder()
+    .target(env_logger::Target::Stdout)
+    .init();
+
   let (tx, rx) = tokio::sync::mpsc::channel(100);
   tokio::spawn(video::start_worker(rx));
 

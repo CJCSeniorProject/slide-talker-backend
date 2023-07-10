@@ -34,6 +34,7 @@ fn validate_video<'a>(value: &TempFile<'a>) -> form::Result<'a, ()> {
       return Ok(());
     }
   }
+  log::warn!("Invalid file type: MP4 or MOV required");
   Err(Error::validation("Invalid file type: MP4 or MOV required").into())
 }
 
@@ -43,6 +44,7 @@ fn validate_avatar<'a>(value: &TempFile<'a>) -> form::Result<'a, ()> {
       return Ok(());
     }
   }
+  log::warn!("Invalid file type: PNG or JPEG required");
   Err(Error::validation("Invalid file type: PNG or JPEG required").into())
 }
 
@@ -50,6 +52,7 @@ fn validate_range_0_to_1<'a>(value: &f32) -> form::Result<'a, ()> {
   if *value >= 0.0 && *value <= 1.0 {
     Ok(())
   } else {
+    log::warn!("The value must be between 0 and 1");
     Err(Error::validation("The value must be between 0 and 1").into())
   }
 }
