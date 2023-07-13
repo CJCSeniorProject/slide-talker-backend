@@ -1,0 +1,78 @@
+[2023-07-13 21:51:20.592] [Info] Starting video generation worker
+[2023-07-13 21:51:20.593] [Info] 🔧 Configured for debug.
+[2023-07-13 21:51:20.594] [Info] address: 127.0.0.1
+[2023-07-13 21:51:20.595] [Info] port: 8000
+[2023-07-13 21:51:20.596] [Info] workers: 20
+[2023-07-13 21:51:20.597] [Info] max blocking threads: 512
+[2023-07-13 21:51:20.597] [Info] ident: Rocket
+[2023-07-13 21:51:20.598] [Info] IP header: X-Real-IP
+[2023-07-13 21:51:20.599] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-13 21:51:20.600] [Info] temp dir: /tmp
+[2023-07-13 21:51:20.601] [Info] http/2: true
+[2023-07-13 21:51:20.602] [Info] keep-alive: 5s
+[2023-07-13 21:51:20.603] [Info] tls: disabled
+[2023-07-13 21:51:20.603] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-13 21:51:20.604] [Info] log level: normal
+[2023-07-13 21:51:20.605] [Info] cli colors: true
+[2023-07-13 21:51:20.606] [Info] 📬 Routes:
+[2023-07-13 21:51:20.607] [Info] (gen_video) POST /api/gen
+[2023-07-13 21:51:20.608] [Info] (download) GET /download/<code>
+[2023-07-13 21:51:20.609] [Info] (set_email) POST /api/gen/<code>
+[2023-07-13 21:51:20.610] [Info] (get_video) GET /api/gen/<code>
+[2023-07-13 21:51:20.610] [Info] 🥅 Catchers:
+[2023-07-13 21:51:20.611] [Info] (handle_unprocessable_entity) 422
+[2023-07-13 21:51:20.612] [Info] 📡 Fairings:
+[2023-07-13 21:51:20.613] [Info] Shield (liftoff, response, singleton)
+[2023-07-13 21:51:20.614] [Info] Add CORS headers to responses (response)
+[2023-07-13 21:51:20.615] [Info] 🛡️ Shield:
+[2023-07-13 21:51:20.616] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-13 21:51:20.617] [Info] X-Content-Type-Options: nosniff
+[2023-07-13 21:51:20.618] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-13 21:51:20.618] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-13 21:51:20.619] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-13 21:51:20.620] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-13 21:51:20.621] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-13 21:51:57.439] [Info] POST /api/gen multipart/form-data:
+[2023-07-13 21:51:57.444] [Info] Matched: (gen_video) POST /api/gen
+[2023-07-13 21:52:05.565] [Info] Generating video
+[2023-07-13 21:52:05.571] [Info] Generating random code
+[2023-07-13 21:52:05.575] [Debug] Offset calculated: 70702
+[2023-07-13 21:52:05.577] [Debug] random_code=mXq4v, timestamp=853
+[2023-07-13 21:52:05.577] [Info] Random code generated, code = mXq4v853
+[2023-07-13 21:52:05.578] [Debug] Generated code : mXq4v853
+[2023-07-13 21:52:05.579] [Debug] request=Request { code: "mXq4v853", x: 0.0, y: 0.0, shape: "square", subtitle: false }
+[2023-07-13 21:52:05.580] [Info] Video generation request sent for code: mXq4v853
+[2023-07-13 21:52:05.581] [Info] Outcome: Success
+[2023-07-13 21:52:05.582] [Info] Response succeeded.
+[2023-07-13 21:52:05.582] [Info] Received request with code: mXq4v853
+[2023-07-13 21:52:05.583] [Info] Converting MP4 to WAV
+[2023-07-13 21:52:05.584] [Debug] mp4=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853/video.mp4, output path=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853/audio.wav
+[2023-07-13 21:52:05.637] [Info] MP4 to WAV conversion success
+[2023-07-13 21:52:05.638] [Info] Running gen video Python script
+[2023-07-13 21:52:05.639] [Debug] driven_audio=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853/audio.wav, source_image=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853/avatar.jpg, result_dir=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853
+[2023-07-13 21:52:08.317] [Info] GET /api/gen/mXq4v853:
+[2023-07-13 21:52:08.318] [Info] Matched: (get_video) GET /api/gen/<code>
+[2023-07-13 21:52:08.319] [Info] Get video for code: mXq4v853
+[2023-07-13 21:52:08.320] [Debug] path=tmp/mXq4v853/result.mp4
+[2023-07-13 21:52:08.321] [Info] Video not ready for code: mXq4v853
+[2023-07-13 21:52:08.322] [Info] Outcome: Success
+[2023-07-13 21:52:08.323] [Info] Response succeeded.
+[2023-07-13 21:52:08.333] [Info] GET /api/gen/mXq4v853:
+[2023-07-13 21:52:08.334] [Info] Matched: (get_video) GET /api/gen/<code>
+[2023-07-13 21:52:08.335] [Info] Get video for code: mXq4v853
+[2023-07-13 21:52:08.336] [Debug] path=tmp/mXq4v853/result.mp4
+[2023-07-13 21:52:08.337] [Info] Video not ready for code: mXq4v853
+[2023-07-13 21:52:08.338] [Info] Outcome: Success
+[2023-07-13 21:52:08.339] [Info] Response succeeded.
+[2023-07-13 21:53:05.275] [Info] Python gen video success
+[2023-07-13 21:53:05.276] [Info] Merging video and avatar video
+[2023-07-13 21:53:05.278] [Info] Getting video decoder for file
+[2023-07-13 21:53:05.279] [Debug] file=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853/video.mp4
+[2023-07-13 21:53:05.284] [Info] Video decoder obtained successfully
+[2023-07-13 21:53:05.285] [Debug] video_size=(720, 1280), avatar_actual_x=0, avatar_actual_y=0, circle_filter=;[0t25][1]
+[2023-07-13 21:53:06.219] [Info] FFmpeg merge avatar and video success
+[2023-07-13 21:53:06.220] [Info] Sending email
+[2023-07-13 21:53:06.220] [Debug] email_path=/home/lab603/Documents/slide_talker_backend/tmp/mXq4v853/email.txt
+[2023-07-13 21:53:06.221] [Warn] No email found
+[2023-07-13 21:53:06.222] [Info] Video generation completed for code: mXq4v853
+[2023-07-13 21:58:32.869] [Warn] Received SIGINT. Requesting shutdown.

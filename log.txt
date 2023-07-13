@@ -1,35 +1,78 @@
-[2023-07-11 14:29:27.834 INFO] Starting video generation worker
-[2023-07-11 14:29:27.835 INFO] 🔧 Configured for debug.
-[2023-07-11 14:29:27.835 INFO] address: [1;49;39m127.0.0.1[0m
-[2023-07-11 14:29:27.835 INFO] port: [1;49;39m8000[0m
-[2023-07-11 14:29:27.835 INFO] workers: [1;49;39m20[0m
-[2023-07-11 14:29:27.835 INFO] max blocking threads: [1;49;39m512[0m
-[2023-07-11 14:29:27.835 INFO] ident: [1;49;39mRocket[0m
-[2023-07-11 14:29:27.835 INFO] IP header: [1;49;39mX-Real-IP[0m
-[2023-07-11 14:29:27.835 INFO] limits: [1;49;39mbytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB[0m
-[2023-07-11 14:29:27.835 INFO] temp dir: [1;49;39m/tmp[0m
-[2023-07-11 14:29:27.835 INFO] http/2: [1;49;39mtrue[0m
-[2023-07-11 14:29:27.835 INFO] keep-alive: [1;49;39m5[0m[1;49;39ms[0m
-[2023-07-11 14:29:27.835 INFO] tls: [1;49;39mdisabled[0m
-[2023-07-11 14:29:27.836 INFO] shutdown: [1;49;39mctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s[0m
-[2023-07-11 14:29:27.836 INFO] log level: [1;49;39mnormal[0m
-[2023-07-11 14:29:27.836 INFO] cli colors: [1;49;39mtrue[0m
-[2023-07-11 14:29:27.836 INFO] 📬 [35mRoutes[0m:
-[2023-07-11 14:29:27.836 INFO] [36m([0m[37mgen_video[0m[36m)[0m [32mPOST[0m [34m/api/gen[0m
-[2023-07-11 14:29:27.836 INFO] [36m([0m[37mdownload[0m[36m)[0m [32mGET[0m [34m/download/<code>[0m
-[2023-07-11 14:29:27.836 INFO] [36m([0m[37mset_email[0m[36m)[0m [32mPOST[0m [34m/api/gen/<code>[0m
-[2023-07-11 14:29:27.836 INFO] [36m([0m[37mget_video[0m[36m)[0m [32mGET[0m [34m/api/gen/<code>[0m
-[2023-07-11 14:29:27.836 INFO] 🥅 [35mCatchers[0m:
-[2023-07-11 14:29:27.836 INFO] [36m([0m[37mhandle_unprocessable_entity[0m[36m)[0m [34m422[0m
-[2023-07-11 14:29:27.836 INFO] 📡 [35mFairings[0m:
-[2023-07-11 14:29:27.836 INFO] [1;49;39mAdd CORS headers to responses[0m ([1;34mresponse[0m)
-[2023-07-11 14:29:27.836 INFO] [1;49;39mShield[0m ([1;34mliftoff, response, singleton[0m)
-[2023-07-11 14:29:27.836 INFO] 🛡️ [35mShield[0m:
-[2023-07-11 14:29:27.836 INFO] X-Frame-Options: [49;39mSAMEORIGIN[0m
-[2023-07-11 14:29:27.836 INFO] Permissions-Policy: [49;39minterest-cohort=()[0m
-[2023-07-11 14:29:27.836 INFO] X-Content-Type-Options: [49;39mnosniff[0m
-[2023-07-11 14:29:27.836 WARN] 🚀 [1;49;39mRocket has launched from[0m [1;4;49;39mhttp://127.0.0.1:8000[0m
-[2023-07-11 14:29:27.836 WARN] Rocket is executing inside of a custom runtime.
-[2023-07-11 14:29:27.836 INFO] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
-[2023-07-11 14:29:27.836 INFO] Forced shutdown is disabled. Runtime settings may be suboptimal.
-[2023-07-11 14:29:53.970 WARN] Received SIGINT. Requesting shutdown.
+[2023-07-13 15:14:40.807] [Info] Starting video generation worker
+[2023-07-13 15:14:40.807] [Info] 🔧 Configured for debug.
+[2023-07-13 15:14:40.808] [Info] address: 127.0.0.1
+[2023-07-13 15:14:40.809] [Info] port: 8000
+[2023-07-13 15:14:40.810] [Info] workers: 20
+[2023-07-13 15:14:40.811] [Info] max blocking threads: 512
+[2023-07-13 15:14:40.812] [Info] ident: Rocket
+[2023-07-13 15:14:40.813] [Info] IP header: X-Real-IP
+[2023-07-13 15:14:40.814] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-13 15:14:40.815] [Info] temp dir: /tmp
+[2023-07-13 15:14:40.816] [Info] http/2: true
+[2023-07-13 15:14:40.816] [Info] keep-alive: 5s
+[2023-07-13 15:14:40.817] [Info] tls: disabled
+[2023-07-13 15:14:40.818] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-13 15:14:40.819] [Info] log level: normal
+[2023-07-13 15:14:40.820] [Info] cli colors: true
+[2023-07-13 15:14:40.821] [Info] 📬 Routes:
+[2023-07-13 15:14:40.822] [Info] (gen_video) POST /api/gen
+[2023-07-13 15:14:40.823] [Info] (download) GET /download/<code>
+[2023-07-13 15:14:40.824] [Info] (set_email) POST /api/gen/<code>
+[2023-07-13 15:14:40.825] [Info] (get_video) GET /api/gen/<code>
+[2023-07-13 15:14:40.825] [Info] 🥅 Catchers:
+[2023-07-13 15:14:40.826] [Info] (handle_unprocessable_entity) 422
+[2023-07-13 15:14:40.827] [Info] 📡 Fairings:
+[2023-07-13 15:14:40.828] [Info] Shield (liftoff, response, singleton)
+[2023-07-13 15:14:40.829] [Info] Add CORS headers to responses (response)
+[2023-07-13 15:14:40.830] [Info] 🛡️ Shield:
+[2023-07-13 15:14:40.831] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-13 15:14:40.832] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-13 15:14:40.833] [Info] X-Content-Type-Options: nosniff
+[2023-07-13 15:14:40.834] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-13 15:14:40.835] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-13 15:14:40.836] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-13 15:14:40.837] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-13 15:15:02.714] [Warn] Received SIGINT. Requesting shutdown.
+[2023-07-13 15:24:46.484] [Info] Starting video generation worker
+[2023-07-13 15:24:46.484] [Info] 🔧 Configured for debug.
+[2023-07-13 15:24:46.486] [Info] address: 127.0.0.1
+[2023-07-13 15:24:46.486] [Info] port: 8000
+[2023-07-13 15:24:46.487] [Info] workers: 20
+[2023-07-13 15:24:46.488] [Info] max blocking threads: 512
+[2023-07-13 15:24:46.489] [Info] ident: Rocket
+[2023-07-13 15:24:46.490] [Info] IP header: X-Real-IP
+[2023-07-13 15:24:46.491] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-13 15:24:46.492] [Info] temp dir: /tmp
+[2023-07-13 15:24:46.493] [Info] http/2: true
+[2023-07-13 15:24:46.494] [Info] keep-alive: 5s
+[2023-07-13 15:24:46.494] [Info] tls: disabled
+[2023-07-13 15:24:46.496] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-13 15:24:46.496] [Info] log level: normal
+[2023-07-13 15:24:46.497] [Info] cli colors: true
+[2023-07-13 15:24:46.498] [Info] 📬 Routes:
+[2023-07-13 15:24:46.499] [Info] (gen_video) POST /api/gen
+[2023-07-13 15:24:46.500] [Info] (download) GET /download/<code>
+[2023-07-13 15:24:46.501] [Info] (set_email) POST /api/gen/<code>
+[2023-07-13 15:24:46.502] [Info] (get_video) GET /api/gen/<code>
+[2023-07-13 15:24:46.503] [Info] 🥅 Catchers:
+[2023-07-13 15:24:46.504] [Info] (handle_unprocessable_entity) 422
+[2023-07-13 15:24:46.505] [Info] 📡 Fairings:
+[2023-07-13 15:24:46.506] [Info] Shield (liftoff, response, singleton)
+[2023-07-13 15:24:46.506] [Info] Add CORS headers to responses (response)
+[2023-07-13 15:24:46.508] [Info] 🛡️ Shield:
+[2023-07-13 15:24:46.508] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-13 15:24:46.509] [Info] X-Content-Type-Options: nosniff
+[2023-07-13 15:24:46.510] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-13 15:24:46.511] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-13 15:24:46.512] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-13 15:24:46.513] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-13 15:24:46.514] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-13 15:25:40.003] [Info] POST /api/gen multipart/form-data:
+[2023-07-13 15:25:40.007] [Info] Matched: (gen_video) POST /api/gen
+[2023-07-13 15:25:40.008] [Warn] Invalid file type: MP4 or MOV required
+[2023-07-13 15:25:40.009] [Warn] Invalid file type: PNG or JPEG required
+[2023-07-13 15:25:40.010] [Warn] Data guard `Form < GenVideoRequestForm < '_ > >` failed: Errors([Error { name: Some("video"), value: None, kind: Validation("Invalid file type: MP4 or MOV required"), entity: Value }, Error { name: Some("avatar"), value: None, kind: Validation("Invalid file type: PNG or JPEG required"), entity: Value }]).
+[2023-07-13 15:25:40.011] [Info] Outcome: Failure
+[2023-07-13 15:25:40.011] [Warn] Responding with registered (handle_unprocessable_entity) 422 catcher.
+[2023-07-13 15:25:40.012] [Info] Response succeeded.
+[2023-07-13 15:26:04.569] [Warn] Received SIGINT. Requesting shutdown.

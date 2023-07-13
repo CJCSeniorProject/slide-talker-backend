@@ -1,35 +1,52 @@
+use ansi_term::Colour;
 use chrono::Local;
-use env_logger::{fmt::Color, Target};
+use env_logger::Target;
 use log::{Level, LevelFilter};
-use std::{fs::File, io::Write};
+use regex;
+use std::{fs::OpenOptions, io::Write};
 
 pub fn init_logger() {
-  // let file = Box::new(File::create("log.txt").expect("Can't create file"));
-  // let target = Target::Pipe(file);
+  let now = Local::now().format("%Y-%m-%d");
+  let file_name = format!("logfile/{}.txt", now);
+
+  let file = OpenOptions::new()
+    .create(true)
+    .append(true)
+    .open(&file_name)
+    .expect("Failed to open log file");
+
+  let target = Target::Pipe(Box::new(file));
 
   env_logger::Builder::new()
-    .target(Target::Stdout)
     .filter(None, LevelFilter::Debug)
+    .target(target)
     .format(|buf, record| {
-      let mut bold = buf.style();
-      bold.set_bold(true);
-
       let level_style = match record.level() {
-        Level::Error => bold.set_color(Color::Red),
-        Level::Warn => bold.set_color(Color::Yellow),
-        Level::Info => bold.set_color(Color::Green),
-        Level::Debug => bold.set_color(Color::Blue),
-        Level::Trace => bold.set_color(Color::White),
+        Level::Error => Colour::Red.bold().paint("Error"),
+        Level::Warn => Colour::Yellow.bold().paint("Warn"),
+        Level::Info => Colour::Green.bold().paint("Info"),
+        Level::Debug => Colour::Blue.bold().paint("Debug"),
+        Level::Trace => Colour::White.bold().paint("Trace"),
       };
 
-      writeln!(
-        buf,
-        "[{} {}] {}",
+      let message = format!(
+        "[{}] [{}] {}",
         Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
-        level_style.value(record.level()),
+        level_style,
         record.args()
-      )
+      );
+      println!("{}", &message);
+
+      let message = remove_ansi_escape_codes(&message);
+      writeln!(buf, "{}", message)
     })
-    .format_level(true)
     .init();
+}
+
+fn remove_ansi_escape_codes(s: &str) -> String {
+  let pattern = "\x1B\\[[^m]*m"; // 匹配 ANSI 转义码的正则表达式
+  regex::Regex::new(pattern)
+    .unwrap()
+    .replace_all(s, "")
+    .to_string()
 }
