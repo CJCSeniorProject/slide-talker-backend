@@ -1,3 +1,4 @@
+mod db;
 mod logger;
 mod utils;
 mod video;
@@ -37,15 +38,24 @@ fn handle_unprocessable_entity(_: &Request) -> &'static str {
   "Unprocessable Entity"
 }
 
+#[catch(499)]
+fn handle_processing(_: &Request) -> &'static str {
+  "Processing"
+}
+
 #[tokio::main]
 async fn main() {
   logger::init_logger();
+  db::init_db();
 
   let (tx, rx) = tokio::sync::mpsc::channel(100);
   tokio::spawn(video::start_worker(rx));
 
   let server = rocket::build()
-    .register("/", catchers![handle_unprocessable_entity])
+    .register(
+      "/",
+      catchers![handle_unprocessable_entity, handle_processing],
+    )
     .mount("/", routes![gen_video, set_email, get_video, download])
     .attach(CORS)
     .manage(tx.clone())

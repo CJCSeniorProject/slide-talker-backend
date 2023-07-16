@@ -1,16 +1,16 @@
-use ffmpeg_next as ffmpeg;
-use rand::Rng;
-
-use std::{
-  process::Command,
-  time::{SystemTime, UNIX_EPOCH},
-};
-
 use lettre::{
   message::header::ContentType, transport::smtp::authentication::Credentials, Message,
   SmtpTransport, Transport,
 };
-use std::{fs, path::Path};
+use rand::Rng;
+use reqwest;
+use std::{
+  collections::HashMap,
+  time::{SystemTime, UNIX_EPOCH},
+};
+
+use crate::db;
+use crate::video::{api::get_file_path, model::TaskStatus};
 
 pub fn generate_rand_code() -> String {
   log::info!("Generating random code");
@@ -52,290 +52,251 @@ pub fn generate_rand_code() -> String {
   code
 }
 
-pub fn mp4_to_wav(mp4: &str, output_path: &str) -> Result<(), String> {
-  log::info!("Converting MP4 to WAV");
-  log::debug!("mp4={}, output path={}", mp4, output_path);
+pub async fn mp4_to_wav(code: &str) -> Result<(), String> {
+  log::info!("Converting MP4 to WAV for code: {}", code);
 
-  let mut command = Command::new("ffmpeg");
-  command
-    .arg("-i")
-    .arg(mp4)
-    .arg("-vn")
-    .arg("-acodec")
-    .arg("pcm_s16le")
-    .arg("-ar")
-    .arg("44100")
-    .arg("-ac")
-    .arg("2")
-    .arg("-f")
-    .arg("wav")
-    .arg(output_path);
+  let mut map = HashMap::new();
+  map.insert("mp4_path", get_file_path(code, "video.mp4"));
+  map.insert("wav_path", get_file_path(code, "audio.wav"));
 
-  let status = command.status().map_err(|e| {
-    log::error!("Failed to execute command: {}", e);
-    e.to_string()
-  })?;
+  let client = reqwest::Client::new();
+  let response = client
+    .post("http://localhost:5000/convert_mp4_to_wav")
+    .json(&map)
+    .send()
+    .await
+    .map_err(|e| {
+      let err_msg = format!("Request failed with error: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
 
-  if status.success() {
+  if response.status().is_success() {
     log::info!("MP4 to WAV conversion success");
     Ok(())
   } else {
-    let error_message = format!("MP4 to WAV conversion failed: {:?}", command);
-    log::error!("{}", error_message);
-    Err(error_message)
+    let err_msg = "MP4 to WAV conversion failed";
+    log::error!("{}", err_msg);
+    Err(err_msg.to_string())
   }
 }
 
-pub fn run_gen_video_python(wav: &str, avatar: &str, output: &str) -> Result<(), String> {
-  log::info!("Running gen video Python script");
-  log::debug!(
-    "driven_audio={}, source_image={}, result_dir={}",
-    wav,
-    avatar,
-    output
-  );
+pub async fn run_gen_video_python(code: &str) -> Result<(), String> {
+  log::info!("Running gen video Python script for code: {}", code);
 
-  let mut command = Command::new("zsh");
-  command
-    .arg("-c")
-    .arg(format!("source ~/.zshrc && conda activate sadtalker && python3 ~/Documents/SadTalker/inference.py --driven_audio {} --source_image {} --result_dir {}", wav, avatar, output));
+  let mut map = HashMap::new();
+  map.insert("audio_path", get_file_path(code, "audio.wav"));
+  map.insert("image_path", get_file_path(code, "avatar.jpg"));
+  map.insert("result_dir", get_file_path(code, "gen"));
 
-  let status = command.status().map_err(|e| {
-    log::error!("Failed to execute command: {}", e);
-    e.to_string()
-  })?;
+  let client = reqwest::Client::new();
+  let response = client
+    .post("http://localhost:5000/gen")
+    .json(&map)
+    .send()
+    .await
+    .map_err(|e| {
+      let err_msg = format!("Request failed with error: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
 
-  if status.success() {
+  if response.status().is_success() {
     log::info!("Python gen video success");
     Ok(())
   } else {
-    let error_message = format!("Python gen video failed: {:?}", command);
-    log::error!("{}", error_message);
-    Err(error_message)
+    let err_msg = "Python gen video failed";
+    log::error!("{}", err_msg);
+    Err(err_msg.to_string())
   }
 }
 
-fn get_video_decoder(
-  file_path: &str,
-) -> Result<ffmpeg::codec::decoder::Video, Box<dyn std::error::Error>> {
-  log::info!("Getting video decoder for file");
-  log::debug!("file={}", file_path);
+pub async fn merge_avatar_video_chunks(code: &str) -> Result<(), String> {
+  log::info!("Merging video chunks for code: {}", code);
 
-  ffmpeg::init().map_err(|e| {
-    log::error!("Failed to initialize FFmpeg: {}", e);
-    e
-  })?;
+  let mut map = HashMap::new();
+  map.insert("chunks_dir", get_file_path(code, "gen"));
+  map.insert("output_path", get_file_path(code, "avatar_video.mp4"));
 
-  let ictx = match ffmpeg::format::input(&file_path) {
-    Ok(ictx) => ictx,
-    Err(e) => {
-      log::error!("Failed to open input file: {}", e);
-      return Err(e.into());
-    }
-  };
-
-  let input = match ictx
-    .streams()
-    .best(ffmpeg::media::Type::Video)
-    .ok_or(ffmpeg::Error::StreamNotFound)
-  {
-    Ok(input) => input,
-    Err(e) => {
-      log::error!("Failed to find video stream: {}", e);
-      return Err(e.into());
-    }
-  };
-
-  let context_decoder = ffmpeg::codec::context::Context::from_parameters(input.parameters())
+  let client = reqwest::Client::new();
+  let response = client
+    .post("http://localhost:5000/merge_avatar_video_chunks")
+    .json(&map)
+    .send()
+    .await
     .map_err(|e| {
-      log::error!("Failed to create decoder context: {}", e);
-      e
+      let err_msg = format!("Request failed with error: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
     })?;
 
-  let decoder = context_decoder.decoder().video().map_err(|e| {
-    log::error!("Failed to create video decoder: {}", e);
-    e
-  })?;
-
-  log::info!("Video decoder obtained successfully");
-  Ok(decoder)
-}
-
-pub fn merge_video_and_avatar_video(
-  video_path: &String,
-  avatar_video_path: &String,
-  result_path: &String,
-  x: &f32,
-  y: &f32,
-  shape: &String,
-) -> Result<(), String> {
-  log::info!("Merging video and avatar video");
-
-  let video_decoder = get_video_decoder(&video_path).map_err(|e| {
-    log::error!("get_video_decoder error!");
-    e.to_string()
-  })?;
-
-  let video_size = (video_decoder.width(), video_decoder.height());
-  // let avatar_video_size = (avatar_video_decoder.width(), avatar_video_decoder.height());
-  let avatar_actual_x = x * video_size.0 as f32;
-  let avatar_actual_y = y * video_size.1 as f32;
-
-  let overlay_filter = format!("overlay=x={}:y={}", avatar_actual_x, avatar_actual_y);
-  let circle_filter = if shape == "circle" {
-    ";[2]alphaextract[vAlpha];[1][vAlpha]alphamerge[bg];[0t25][bg]"
-  } else {
-    ";[0t25][1]"
-  };
-  //[1]scale=x=100:y=100[avatar]
-
-  log::debug!(
-    "video_size={:?}, avatar_actual_x={}, avatar_actual_y={}, circle_filter={}",
-    video_size,
-    avatar_actual_x,
-    avatar_actual_y,
-    circle_filter
-  );
-
-  let mut command = Command::new("ffmpeg");
-  command
-    .arg("-i")
-    .arg(&video_path)
-    .arg("-i")
-    .arg(&avatar_video_path)
-    .arg("-i")
-    .arg("/home/lab603/Documents/slide_talker_backend/src/circle.png")
-    .arg("-filter_complex")
-    .arg(format!(
-      "[0]fps=25[0t25]{}{}",
-      circle_filter, overlay_filter
-    ))
-    .arg(&result_path);
-
-  let status = command.status().map_err(|e| {
-    log::error!("Failed to execute command: {}", e);
-    e.to_string()
-  })?;
-
-  if status.success() {
+  if response.status().is_success() {
     log::info!("FFmpeg merge avatar and video success");
     Ok(())
   } else {
-    let error_message = format!("FFmpeg merge avatar and video failed: {:?}", command);
-    log::error!("{}", error_message);
-    Err(error_message)
+    let err_msg = "FFmpeg merge avatar and video failed";
+    log::error!("{}", err_msg);
+    Err(err_msg.to_string())
   }
 }
 
-pub fn send_email(dir_path: &String, code: &String, failed: bool) -> Result<(), String> {
+pub async fn merge_video_and_avatar_video(
+  code: &str,
+  x: &f32,
+  y: &f32,
+  shape: &str,
+) -> Result<(), String> {
+  log::info!("Merging video and avatar video for code: {}", code);
+
+  let mut map = HashMap::new();
+  map.insert("main_video_path", get_file_path(code, "video.mp4"));
+  map.insert("avatar_video_path", get_file_path(code, "avatar_video.mp4"));
+  map.insert("output_path", get_file_path(code, "result.mp4"));
+  map.insert("position", format!("({},{})", x, y));
+  map.insert("avatar_shape", shape.to_string());
+
+  let client = reqwest::Client::new();
+  let response = client
+    .post("http://localhost:5000/merge_video_and_avatar_video")
+    .json(&map)
+    .send()
+    .await
+    .map_err(|e| {
+      let err_msg = format!("Request failed with error: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
+
+  if response.status().is_success() {
+    log::info!("FFmpeg merge avatar and video success");
+    Ok(())
+  } else {
+    let err_msg = "FFmpeg merge avatar and video failed";
+    log::error!("{}", err_msg);
+    Err(err_msg.to_string())
+  }
+}
+
+pub async fn gen_subtitle(code: &str) -> Result<(), String> {
+  log::info!("Generating subtitle for code: {}", &code);
+
+  let mut map = HashMap::new();
+  map.insert("file_path", get_file_path(code, "audio.wav"));
+  map.insert("save_path", get_file_path(code, "output.srt"));
+
+  let client = reqwest::Client::new();
+  let response = client
+    .post("http://localhost:5000/gen_subtitle")
+    .json(&map)
+    .send()
+    .await
+    .map_err(|e| {
+      let err_msg = format!("Request failed with error: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
+
+  if response.status().is_success() {
+    log::info!("Python gen subtitle success");
+    Ok(())
+  } else {
+    let err_msg = "Python gen subtitle failed";
+    log::error!("{}", err_msg);
+    Err(err_msg.to_string())
+  }
+}
+
+pub async fn merge_video_and_subtitle(code: &str) -> Result<(), String> {
+  log::info!("Generating subtitle for code: {}", &code);
+
+  let mut map = HashMap::new();
+  map.insert("video_path", get_file_path(code, "result.mp4"));
+  map.insert("subtitle_path", get_file_path(code, "output.srt"));
+  map.insert("output_path", get_file_path(code, "result_subtitle.mp4"));
+
+  let client = reqwest::Client::new();
+  let response = client
+    .post("http://localhost:5000/merge_video_and_subtitle")
+    .json(&map)
+    .send()
+    .await
+    .map_err(|e| {
+      let err_msg = format!("Request failed with error: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
+
+  if response.status().is_success() {
+    log::info!("Python gen subtitle success");
+    Ok(())
+  } else {
+    let err_msg = "Python gen subtitle failed";
+    log::error!("{}", err_msg);
+    Err(err_msg.to_string())
+  }
+}
+
+pub fn result(code: &str, success: bool) {
+  log::info!("Result of code: {}, success={}", code, success);
+  if success {
+    let _ = db::update_task_status(code, TaskStatus::Finish);
+  } else {
+    let _ = db::update_task_status(code, TaskStatus::Fail);
+  }
+  match db::get_task_email(code) {
+    Ok(email) => {
+      let _ = send_email(&email, code, success);
+    }
+    Err(_) => {
+      log::warn!("Email not found");
+    }
+  }
+}
+
+pub fn send_email(email: &str, code: &str, success: bool) -> Result<(), String> {
   log::info!("Sending email");
 
-  let email_path = format!("{}/email.txt", &dir_path);
-  log::debug!("email_path={}", email_path);
+  let body = match success {
+    true => format!(
+      "Hi, your video is ready, please download it from: http://localhost:3000/{}",
+      code
+    ),
+    false => String::from("Your video generation has failed"),
+  };
 
-  if Path::new(&email_path).exists() {
-    let email = fs::read_to_string(&email_path).expect("Something went wrong reading the file");
-    let email: Vec<&str> = email.split("\n").collect();
-    let email = email[0];
-
-    let body = match failed {
-      false => format!(
-        "Hi, your video is ready, please download it from: http://localhost:3000/{}",
-        code
-      ),
-      true => String::from("Your video generation has failed"),
-    };
-
-    let email_builder = Message::builder()
-      .from("jimmyhealer <yahing6066@gmail.com>".parse().unwrap())
-      .reply_to("jimmyhealer <yahing6066@gmail.com>".parse().unwrap())
-      .to(email.parse().unwrap())
-      .subject("Gen video done!")
-      .header(ContentType::TEXT_PLAIN)
-      .body(body)
-      .map_err(|e| {
-        log::error!("Failed to build email message: {}", e);
-        e.to_string()
-      })?;
-
-    let creds = Credentials::new(
-      "yahing6066@gmail.com".to_owned(),
-      "bdfecnvwtvjksjco".to_owned(),
-    );
-
-    // Open a remote connection to gmail
-    let mailer = SmtpTransport::relay("smtp.gmail.com")
-      .unwrap()
-      .credentials(creds)
-      .build();
-
-    match mailer.send(&email_builder) {
-      Ok(_) => {
-        log::info!("Email sent successfully!");
-        Ok(())
-      }
-      Err(e) => {
-        log::error!("Could not send email: {:?}", e);
-        Err(e.to_string())
-      }?,
-    }
-  } else {
-    log::warn!("No email found");
-    Ok(())
-  }
-}
-
-pub fn gen_subtitle(
-  dir_path: &String,
-  video_path: &String,
-  video_subtitle_path: &String,
-) -> Result<(), String> {
-  log::info!("Generating subtitle");
-  log::debug!(
-    "dir_path={}, video_path={}, video_subtitle_path={}",
-    dir_path,
-    video_path,
-    video_subtitle_path
+  let creds = Credentials::new(
+    "yahing6066@gmail.com".to_owned(),
+    "bdfecnvwtvjksjco".to_owned(),
   );
 
-  let mut command = Command::new("zsh");
-  command
-    .arg("-c")
-    .arg(format!("source ~/.zshrc && conda activate sadtalker && python3 ~/Documents/SadTalker/ai_subtitle.py --file {} --save_dir {}", video_path, dir_path));
+  // Open a remote connection to gmail
+  let mailer = SmtpTransport::relay("smtp.gmail.com")
+    .unwrap()
+    .credentials(creds)
+    .build();
 
-  let status = command.status().map_err(|e| {
-    log::error!("Failed to execute command: {}", e);
-    e.to_string()
-  })?;
+  let email_builder = Message::builder()
+    .from("jimmyhealer <yahing6066@gmail.com>".parse().unwrap())
+    .reply_to("jimmyhealer <yahing6066@gmail.com>".parse().unwrap())
+    .to(email.parse().unwrap())
+    .subject("Gen video done!")
+    .header(ContentType::TEXT_PLAIN)
+    .body(body)
+    .map_err(|e| {
+      let err_msg = format!("Failed to build email message: {:?}", e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
 
-  if status.success() {
-    log::info!("Python gen subtitle success");
-  } else {
-    let error_message = format!("Python gen subtitle failed: {:?}", command);
-    log::error!("{}", error_message);
-    return Err(error_message);
-  }
-
-  let mut command = Command::new("ffmpeg");
-  command
-    .arg("-i")
-    .arg(&video_path)
-    .arg("-vf")
-    .arg(format!("subtitles={}/output_crt.srt", dir_path))
-    .arg("-y")
-    .arg(&video_subtitle_path);
-
-  let status = command.status().map_err(|e| {
-    log::error!("Failed to execute command: {}", e);
-    e.to_string()
-  })?;
-
-  if status.success() {
-    log::info!("FFmpeg composite subtitle success");
-    Ok(())
-  } else {
-    let error_message = format!("FFmpeg composite subtitle failed: {:?}", command);
-    log::error!("{}", error_message);
-    return Err(error_message);
+  match mailer.send(&email_builder) {
+    Ok(_) => {
+      log::info!("Email sent successfully!");
+      Ok(())
+    }
+    Err(e) => {
+      let err_msg = format!("Failed to send email: {:?}", e);
+      log::error!("{}", err_msg);
+      Err(err_msg)
+    }
   }
 }

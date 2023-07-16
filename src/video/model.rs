@@ -58,6 +58,22 @@ fn validate_range_0_to_1<'a>(value: &f32) -> form::Result<'a, ()> {
 }
 
 #[derive(FromForm)]
-pub struct SetEmailRequestForm<'a> {
-  pub email: &'a str,
+pub struct SetEmailRequestForm {
+  pub email: String,
+}
+
+pub enum TaskStatus {
+  Fail,
+  Processing,
+  Finish,
+}
+
+impl ToString for TaskStatus {
+  fn to_string(&self) -> String {
+    match self {
+      TaskStatus::Fail => "Fail".to_string(),
+      TaskStatus::Processing => "Processing".to_string(),
+      TaskStatus::Finish => "Finish".to_string(),
+    }
+  }
 }

@@ -8,6 +8,7 @@ use std::{fs::OpenOptions, io::Write};
 pub fn init_logger() {
   let now = Local::now().format("%Y-%m-%d");
   let file_name = format!("logfile/{}.txt", now);
+  eprintln!("log file name={}", file_name);
 
   let file = OpenOptions::new()
     .create(true)

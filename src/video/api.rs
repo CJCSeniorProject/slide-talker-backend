@@ -1,9 +1,10 @@
+use crate::db;
 use crate::utils;
-
 use rocket::{form::Form, get, http::Status, post, serde::json::Json};
 use serde::Serialize;
-use std::{fs::create_dir_all, io::Write, path::Path};
+use std::{fs::create_dir_all, path::Path};
 
+use super::model::TaskStatus;
 use super::model::{GenVideoRequestForm, Request, SetEmailRequestForm};
 
 #[derive(Serialize)]
@@ -28,19 +29,24 @@ pub async fn gen_video(
 
   // save video and avatar to tmp/<code>/
   create_dir_all(&dir_path).map_err(|e| {
-    log::error!("Failed to create directory: {}", e);
+    log::error!("Failed to create directory: {:?}", e);
     Status::InternalServerError
   })?;
 
   data.video.persist_to(&video_path).await.map_err(|e| {
-    log::error!("Failed to persist video: {}", e);
+    log::error!("Failed to persist video: {:?}", e);
     Status::InternalServerError
   })?;
 
   data.avatar.persist_to(&avatar_path).await.map_err(|e| {
-    log::error!("Failed to persist avatar: {}", e);
+    log::error!("Failed to persist avatar: {:?}", e);
     Status::InternalServerError
   })?;
+
+  if let Err(e) = db::insert_task(&code) {
+    log::error!("{}", e);
+    return Err(Status::InternalServerError);
+  };
 
   // send request to worker
   let request = Request {
@@ -54,7 +60,7 @@ pub async fn gen_video(
   log::debug!("request={:?}", request);
 
   tx.try_send(request).map_err(|e| {
-    log::error!("Failed to send request to worker: {}", e);
+    log::error!("Failed to send request to worker: {:?}", e);
     Status::ServiceUnavailable
   })?;
 
@@ -63,52 +69,40 @@ pub async fn gen_video(
 }
 
 #[post("/api/gen/<code>", data = "<data>")]
-pub async fn set_email(code: String, data: Form<SetEmailRequestForm<'_>>) -> Result<(), Status> {
+pub async fn set_email(code: &str, data: Form<SetEmailRequestForm>) -> Result<(), Status> {
   log::info!("Setting email for code: {}", code);
 
-  let email = data.email;
+  let email = &data.email;
   // check email
   if let Err(e) = email.parse::<lettre::message::Mailbox>() {
-    log::warn!("Wrong Email: {}", e);
-    return Err(Status::UnprocessableEntity);
+    log::warn!("Wrong Email: {:?}", e);
+    Err(Status::UnprocessableEntity)?
   }
 
-  // write email to tmp/<code>/email.txt
-  let file_path = format!(
-    "/home/lab603/Documents/slide_talker_backend/tmp/{}/email.txt",
-    code
-  );
-
-  if let Ok(file) = std::fs::File::create(file_path) {
-    let mut writer = std::io::BufWriter::new(file);
-    if let Ok(_) = writer.write_all(email.as_bytes()) {
-      log::info!("Email set for code: {}", code);
-      return Ok(());
-    }
+  if let Err(e) = db::update_task_email(code, email) {
+    log::error!("Failed to write email: {:?}", e);
+    Err(Status::InternalServerError)?
   }
-
-  log::error!("Failed to write email for code: {}", code);
-  Err(Status::InternalServerError)
+  Ok(())
 }
 
 #[get("/api/gen/<code>")]
-pub async fn get_video(code: &str) -> String {
+pub async fn get_video(code: &str) -> Result<(), Status> {
   log::info!("Get video for code: {}", code);
 
-  let path_str = format!("tmp/{}/result.mp4", code);
-  log::debug!("path={}", path_str);
-
-  let path = Path::new(path_str.as_str());
-
-  // check if tmp/<code>/result.mp4 exists
-  if path.exists() {
-    log::info!("Video ready for code: {}", code);
-
-    format!("http://localhost:8000/download/{}", code)
-  } else {
-    log::info!("Video not ready for code: {}", code);
-
-    "not ready".to_owned()
+  match db::get_task_status(code) {
+    Ok(status) => {
+      log::debug!("Video status={}", status.to_string());
+      match status {
+        TaskStatus::Fail => Err(Status::InternalServerError),
+        TaskStatus::Finish => Ok(()),
+        TaskStatus::Processing => Err(Status::new(499)),
+      }
+    }
+    Err(e) => {
+      log::error!("{}", e);
+      Err(Status::InternalServerError)
+    }
   }
 }
 
@@ -124,7 +118,7 @@ pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, Status> {
   if path.exists() {
     log::info!("Subtitle file found for code: {}", code);
     return rocket::fs::NamedFile::open(path).await.map_err(|e| {
-      log::error!("Failed to open subtitle file for code: {}: {}", code, e);
+      log::error!("Failed to open subtitle file for code: {}: {:?}", code, e);
       Status::InternalServerError
     });
   }
@@ -137,7 +131,7 @@ pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, Status> {
   if path.exists() {
     log::info!("Video file found for code: {}", code);
     rocket::fs::NamedFile::open(path).await.map_err(|e| {
-      log::error!("Failed to open video file for code: {}: {}", code, e);
+      log::error!("Failed to open video file for code: {}: {:?}", code, e);
       Status::InternalServerError
     })
   } else {
@@ -145,3 +139,14 @@ pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, Status> {
     Err(Status::NotFound)
   }
 }
+
+#[get("/file/<code>/<filename>")]
+pub fn get_file_path(code: &str, filename: &str) -> String {
+  // return format!("/tmp/sadtalker/{}/{}", code, filename);
+  return format!(
+    "/home/lab603/Documents/slide_talker_backend/tmp/{}/{}",
+    code, filename
+  );
+}
+
+// /file/465787/audio.wav
