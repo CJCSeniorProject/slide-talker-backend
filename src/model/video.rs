@@ -4,18 +4,16 @@ use rocket::{
   http::ContentType,
   FromForm,
 };
+use serde::Serialize;
 
-#[derive(Debug)]
-pub struct Request {
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct Response {
   pub code: String,
-  pub x: f32,
-  pub y: f32,
-  pub shape: String,
-  pub subtitle: bool,
 }
 
 #[derive(FromForm)]
-pub struct GenVideoRequestForm<'a> {
+pub struct Request<'a> {
   #[field(validate = validate_video())]
   pub video: TempFile<'a>,
   #[field(validate = validate_avatar())]
@@ -54,26 +52,5 @@ fn validate_range_0_to_1<'a>(value: &f32) -> form::Result<'a, ()> {
   } else {
     log::warn!("The value must be between 0 and 1");
     Err(Error::validation("The value must be between 0 and 1").into())
-  }
-}
-
-#[derive(FromForm)]
-pub struct SetEmailRequestForm {
-  pub email: String,
-}
-
-pub enum TaskStatus {
-  Fail,
-  Processing,
-  Finish,
-}
-
-impl ToString for TaskStatus {
-  fn to_string(&self) -> String {
-    match self {
-      TaskStatus::Fail => "Fail".to_string(),
-      TaskStatus::Processing => "Processing".to_string(),
-      TaskStatus::Finish => "Finish".to_string(),
-    }
   }
 }

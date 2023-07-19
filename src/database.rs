@@ -1,30 +1,12 @@
-use crate::video::model::TaskStatus;
-use rusqlite::{
-  params,
-  types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, Value, ValueRef},
-  Connection, Result,
-};
+use crate::model::task;
+use rusqlite::{params, Connection, Result};
 
-impl ToSql for TaskStatus {
-  fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
-    let value = match self {
-      TaskStatus::Fail => Value::Text("fail".to_string()),
-      TaskStatus::Processing => Value::Text("Processing".to_string()),
-      TaskStatus::Finish => Value::Text("finish".to_string()),
-    };
-    Ok(ToSqlOutput::Owned(value))
-  }
-}
-
-impl FromSql for TaskStatus {
-  fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
-    match value.as_str() {
-      Ok("fail") => Ok(TaskStatus::Fail),
-      Ok("Processing") => Ok(TaskStatus::Processing),
-      Ok("finish") => Ok(TaskStatus::Finish),
-      _ => Err(FromSqlError::InvalidType),
-    }
-  }
+fn handle_error<T>(result: Result<T, rusqlite::Error>, title: &str) -> Result<T, String> {
+  result.map_err(|e| {
+    let err_msg = format!("{} failed with error: {:?}", title, e);
+    log::error!("{}", err_msg);
+    err_msg
+  })
 }
 
 pub fn init_db() {
@@ -53,13 +35,9 @@ pub fn init_db() {
   log::info!("Initialization completed successfully");
 }
 
-fn handle_error<T>(result: Result<T, rusqlite::Error>, title: &str) -> Result<T, String> {
-  result.map_err(|e| {
-    let err_msg = format!("{} failed with error: {:?}", title, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })
-}
+// fn get_conn() -> Connection {
+//   handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?
+// }
 
 pub fn insert_task(code: &str) -> Result<(), String> {
   log::info!("Inserting task with code: {}", code);
@@ -77,7 +55,7 @@ pub fn insert_task(code: &str) -> Result<(), String> {
   Ok(())
 }
 
-pub fn get_task_status(code: &str) -> Result<TaskStatus, String> {
+pub fn get_task_status(code: &str) -> Result<task::Status, String> {
   log::info!("Getting task status with code: {}", code);
   let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
 
@@ -117,7 +95,7 @@ pub fn get_task_email(code: &str) -> Result<String, String> {
   }
 }
 
-pub fn update_task_status(code: &str, status: TaskStatus) -> Result<(), String> {
+pub fn update_task_status(code: &str, status: task::Status) -> Result<(), String> {
   log::info!("Updating task status with code: {}", code);
   let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
 
