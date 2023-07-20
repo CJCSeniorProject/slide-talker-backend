@@ -87,8 +87,9 @@ pub fn get_task_email(code: &str) -> Result<String, String> {
 
   let row = handle_error(rows.next(), "Find Next Operation")?;
 
+  //[Error] Get Row Data Operation failed with error: InvalidColumnType(0, "email", Null)
   if let Some(row) = row {
-    let email: String = handle_error(row.get(0), "Get Row Data Operation")?;
+    let email = handle_error(row.get(0), "Get Row Data Operation")?;
     Ok(email)
   } else {
     Err("None".to_string())

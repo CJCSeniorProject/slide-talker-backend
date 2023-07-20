@@ -2,14 +2,64 @@ use rand::Rng;
 use reqwest;
 use std::{
   collections::HashMap,
+  fs::{self, File},
+  path::Path,
   time::{SystemTime, UNIX_EPOCH},
 };
 
-pub fn get_file_path(code: &str, filename: &str) -> String {
-  return format!(
+pub fn get_file_path(code: &str, filename: &str) -> Result<String, String> {
+  log::info!("Getting path of file '{}' for code: {}", filename, code);
+  let path = format!(
     "/home/lab603/Documents/slide_talker_backend/tmp/{}/{}",
     code, filename
   );
+  log::debug!("path={}", path);
+
+  let path_str = Path::new(path.as_str());
+  if path_str.exists() {
+    log::info!("File '{}' found for code: {}", filename, code);
+    return Ok(path);
+  }
+  let err_msg = format!("File '{}' not found for code: {}", filename, code);
+  log::error!("{}", err_msg);
+  Err(err_msg)
+}
+
+pub fn create_file(code: &str, filename: &str) -> Result<String, String> {
+  log::info!("Creating file '{}' for code: {}", filename, code);
+
+  let path = format!(
+    "/home/lab603/Documents/slide_talker_backend/tmp/{}/{}",
+    code, filename
+  );
+  log::debug!("path={}", path);
+
+  File::create(&path).map_err(|e| {
+    let err_msg = format!("Failed to create file '{}': {}", path, e);
+    log::error!("{}", err_msg);
+    err_msg
+  })?;
+
+  log::info!("File created");
+  Ok(path)
+}
+
+pub fn create_dir(code: &str, dirname: &str) -> Result<String, String> {
+  log::info!("Creating directory '{}' for code: {}", dirname, code);
+
+  let mut path = format!("/home/lab603/Documents/slide_talker_backend/tmp/{}", code);
+
+  if !dirname.is_empty() {
+    path = format!("{}/{}", path, dirname);
+  }
+  log::debug!("path={}", path);
+  fs::create_dir_all(&path).map_err(|e| {
+    let err_msg = format!("Failed to create directory '{}': {}", path, e);
+    log::error!("{}", err_msg);
+    err_msg
+  })?;
+  log::info!("Directory created");
+  Ok(path)
 }
 
 pub fn generate_rand_code() -> String {

@@ -16,8 +16,9 @@ pub async fn start_worker(mut rx: Receiver<worker::Request>) {
     if let Err(_) = mp4_to_wav(code).await {
       result(code, false);
       continue;
+    } else {
+      println!("mp4 to wav success!");
     }
-
     if let Err(_) = run_gen_video_python(code).await {
       result(code, false);
       continue;

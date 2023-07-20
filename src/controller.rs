@@ -1,4 +1,4 @@
-use crate::utils::{get_file_path, make_request};
+use crate::utils::{create_dir, create_file, get_file_path, make_request};
 use std::collections::HashMap;
 
 use lettre::{
@@ -10,8 +10,8 @@ pub async fn mp4_to_wav(code: &str) -> Result<(), String> {
   log::info!("Converting MP4 to WAV for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("mp4_path", get_file_path(code, "video.mp4"));
-  map.insert("wav_path", get_file_path(code, "audio.wav"));
+  map.insert("mp4_path", get_file_path(code, "video.mp4")?);
+  map.insert("wav_path", create_file(code, "audio.wav")?);
 
   let response = make_request("http://localhost:5000/convert_mp4_to_wav", &map).await?;
 
@@ -29,9 +29,9 @@ pub async fn run_gen_video_python(code: &str) -> Result<(), String> {
   log::info!("Running gen video Python script for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("audio_path", get_file_path(code, "audio.wav"));
-  map.insert("image_path", get_file_path(code, "avatar.jpg"));
-  map.insert("result_dir", get_file_path(code, "gen"));
+  map.insert("audio_path", get_file_path(code, "audio.wav")?);
+  map.insert("image_path", get_file_path(code, "avatar.jpg")?);
+  map.insert("result_dir", create_dir(code, "gen")?);
 
   let response = make_request("http://localhost:5000/gen", &map).await?;
 
@@ -39,9 +39,9 @@ pub async fn run_gen_video_python(code: &str) -> Result<(), String> {
     log::info!("Python gen video success");
     Ok(())
   } else {
-    let err_msg = "Python gen video failed";
+    let err_msg = "Python gen video failed".to_string();
     log::error!("{}", err_msg);
-    Err(err_msg.to_string())
+    Err(err_msg)
   }
 }
 
@@ -49,8 +49,8 @@ pub async fn merge_avatar_video_chunks(code: &str) -> Result<(), String> {
   log::info!("Merging video chunks for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("chunks_dir", get_file_path(code, "gen"));
-  map.insert("output_path", get_file_path(code, "avatar_video.mp4"));
+  map.insert("chunks_dir", get_file_path(code, "gen")?);
+  map.insert("output_path", create_file(code, "avatar_video.mp4")?);
 
   let response = make_request("http://localhost:5000/merge_avatar_video_chunks", &map).await?;
 
@@ -58,9 +58,9 @@ pub async fn merge_avatar_video_chunks(code: &str) -> Result<(), String> {
     log::info!("FFmpeg merge avatar and video success");
     Ok(())
   } else {
-    let err_msg = "FFmpeg merge avatar and video failed";
+    let err_msg = "FFmpeg merge avatar and video failed".to_string();
     log::error!("{}", err_msg);
-    Err(err_msg.to_string())
+    Err(err_msg)
   }
 }
 
@@ -73,9 +73,12 @@ pub async fn merge_video_and_avatar_video(
   log::info!("Merging video and avatar video for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("main_video_path", get_file_path(code, "video.mp4"));
-  map.insert("avatar_video_path", get_file_path(code, "avatar_video.mp4"));
-  map.insert("output_path", get_file_path(code, "result.mp4"));
+  map.insert("main_video_path", get_file_path(code, "video.mp4")?);
+  map.insert(
+    "avatar_video_path",
+    get_file_path(code, "avatar_video.mp4")?,
+  );
+  map.insert("output_path", create_file(code, "result.mp4")?);
   map.insert("position", format!("({},{})", x, y));
   map.insert("avatar_shape", shape.to_string());
 
@@ -85,9 +88,9 @@ pub async fn merge_video_and_avatar_video(
     log::info!("FFmpeg merge avatar and video success");
     Ok(())
   } else {
-    let err_msg = "FFmpeg merge avatar and video failed";
+    let err_msg = "FFmpeg merge avatar and video failed".to_string();
     log::error!("{}", err_msg);
-    Err(err_msg.to_string())
+    Err(err_msg)
   }
 }
 
@@ -95,8 +98,8 @@ pub async fn gen_subtitle(code: &str) -> Result<(), String> {
   log::info!("Generating subtitle for code: {}", &code);
 
   let mut map = HashMap::new();
-  map.insert("file_path", get_file_path(code, "audio.wav"));
-  map.insert("save_path", get_file_path(code, "output.srt"));
+  map.insert("file_path", get_file_path(code, "audio.wav")?);
+  map.insert("save_path", create_file(code, "output.srt")?);
 
   let response = make_request("http://localhost:5000/gen_subtitle", &map).await?;
 
@@ -104,9 +107,9 @@ pub async fn gen_subtitle(code: &str) -> Result<(), String> {
     log::info!("Python gen subtitle success");
     Ok(())
   } else {
-    let err_msg = "Python gen subtitle failed";
+    let err_msg = "Python gen subtitle failed".to_string();
     log::error!("{}", err_msg);
-    Err(err_msg.to_string())
+    Err(err_msg)
   }
 }
 
@@ -114,9 +117,9 @@ pub async fn merge_video_and_subtitle(code: &str) -> Result<(), String> {
   log::info!("Generating subtitle for code: {}", &code);
 
   let mut map = HashMap::new();
-  map.insert("video_path", get_file_path(code, "result.mp4"));
-  map.insert("subtitle_path", get_file_path(code, "output.srt"));
-  map.insert("output_path", get_file_path(code, "result_subtitle.mp4"));
+  map.insert("video_path", get_file_path(code, "result.mp4")?);
+  map.insert("subtitle_path", get_file_path(code, "output.srt")?);
+  map.insert("output_path", create_file(code, "result_subtitle.mp4")?);
 
   let response = make_request("http://localhost:5000/merge_video_and_subtitle", &map).await?;
 
@@ -124,9 +127,9 @@ pub async fn merge_video_and_subtitle(code: &str) -> Result<(), String> {
     log::info!("Python gen subtitle success");
     Ok(())
   } else {
-    let err_msg = "Python gen subtitle failed";
+    let err_msg = "Python gen subtitle failed".to_string();
     log::error!("{}", err_msg);
-    Err(err_msg.to_string())
+    Err(err_msg)
   }
 }
 

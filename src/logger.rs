@@ -5,7 +5,7 @@ use log::{Level, LevelFilter};
 use regex;
 use std::{fs::OpenOptions, io::Write};
 
-pub fn init_logger() {
+pub fn init_logger(level: LevelFilter) {
   let now = Local::now().format("%Y-%m-%d");
   let file_name = format!("logfile/{}.txt", now);
   eprintln!("log file name={}", file_name);
@@ -19,7 +19,7 @@ pub fn init_logger() {
   let target = Target::Pipe(Box::new(file));
 
   env_logger::Builder::new()
-    .filter(None, LevelFilter::Debug)
+    .filter(None, level)
     .target(target)
     .format(|buf, record| {
       let level_style = match record.level() {

@@ -49,7 +49,7 @@ fn handle_processing(_: &Request) -> &'static str {
 
 #[tokio::main]
 async fn main() {
-  logger::init_logger();
+  logger::init_logger(log::LevelFilter::Info);
   database::init_db();
 
   let (tx, rx) = tokio::sync::mpsc::channel(100);

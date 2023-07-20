@@ -1,7 +1,8 @@
 use crate::database;
 use crate::utils;
+use crate::utils::{create_dir, create_file};
 use rocket::{form::Form, get, http::Status, post, serde::json::Json};
-use std::{fs::create_dir_all, path::Path};
+use std::path::Path;
 
 use crate::model::{email, task, video, worker};
 
@@ -15,22 +16,16 @@ pub async fn gen_video(
   let code = utils::generate_rand_code();
   log::debug!("Generated code : {}", code);
 
-  let dir_path = format!("/home/lab603/Documents/slide_talker_backend/tmp/{}", &code);
-  let video_path = format!("{}/video.mp4", &dir_path);
-  let avatar_path = format!("{}/avatar.jpg", &dir_path);
+  create_dir(&code, "").map_err(|_| Status::InternalServerError)?;
+  let video_path = create_file(&code, "video.mp4").map_err(|_| Status::InternalServerError)?;
+  let avatar_path = create_file(&code, "avatar.jpg").map_err(|_| Status::InternalServerError)?;
 
-  // save video and avatar to tmp/<code>/
-  create_dir_all(&dir_path).map_err(|e| {
-    log::error!("Failed to create directory: {:?}", e);
-    Status::InternalServerError
-  })?;
-
-  data.video.persist_to(&video_path).await.map_err(|e| {
+  data.video.persist_to(video_path).await.map_err(|e| {
     log::error!("Failed to persist video: {:?}", e);
     Status::InternalServerError
   })?;
 
-  data.avatar.persist_to(&avatar_path).await.map_err(|e| {
+  data.avatar.persist_to(avatar_path).await.map_err(|e| {
     log::error!("Failed to persist avatar: {:?}", e);
     Status::InternalServerError
   })?;
@@ -133,8 +128,11 @@ pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, Status> {
 }
 
 #[get("/file/<code>/<filename>")]
-pub fn get_file_path(code: &str, filename: &str) -> String {
-  return utils::get_file_path(code, filename);
+pub fn get_file_path(code: &str, filename: &str) -> Result<String, Status> {
+  if let Ok(path) = utils::get_file_path(code, filename) {
+    return Ok(path);
+  }
+  Err(Status::NotFound)
 }
 
 #[get("/test")]
