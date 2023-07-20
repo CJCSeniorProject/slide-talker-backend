@@ -1,5 +1,5 @@
 use crate::utils::{create_dir, create_file, get_file_path, make_request};
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use lettre::{
   message::header::ContentType, transport::smtp::authentication::Credentials, Message,
@@ -179,4 +179,66 @@ pub fn send_email(email: &str, code: &str, success: bool) -> Result<(), String> 
       Err(err_msg)
     }
   }
+}
+
+pub fn delete_file_in_dir(code: &str) -> Result<(), String> {
+  log::info!("Deleting files in directory for code: {}", code);
+
+  if let Ok(gen) = get_file_path(code, "gen") {
+    fs::remove_dir_all(&gen).map_err(|e| {
+      let err_msg = format!("Failed to remove directory '{}': {}", gen, e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
+  };
+  let files_to_keep = [
+    "result.mp4",
+    "video.mp4",
+    "avatar.jpg",
+    "result_subtitle.mp4",
+  ];
+  let folder_path = format!("/home/lab603/Documents/slide_talker_backend/tmp/{}", code);
+  let dir = fs::read_dir(&folder_path).map_err(|e| {
+    let err_msg = format!("Failed to read directory '{}': {}", folder_path, e);
+    log::error!("{}", err_msg);
+    err_msg
+  })?;
+  for entry in dir {
+    let entry = entry.map_err(|e| {
+      let err_msg = format!("Failed to read entry in directory '{}': {}", folder_path, e);
+      log::error!("{}", err_msg);
+      err_msg
+    })?;
+
+    let path = entry.path();
+
+    let file_name = match path.file_name() {
+      Some(name) => name.to_string_lossy().to_string(),
+      None => continue,
+    };
+
+    log::debug!("file={}", file_name);
+    if !files_to_keep.contains(&file_name.as_str()) {
+      log::debug!("remove file={}", file_name);
+
+      if path.is_dir() {
+        fs::remove_dir_all(&path).map_err(|e| {
+          let err_msg = format!("Failed to remove directory '{}': {}", path.display(), e);
+          log::error!("{}", err_msg);
+          err_msg
+        })?;
+      } else {
+        fs::remove_file(&path).map_err(|e| {
+          let err_msg = format!("Failed to remove file '{}': {}", path.display(), e);
+          log::error!("{}", err_msg);
+          err_msg
+        })?;
+      }
+    }
+  }
+  log::info!(
+    "Deletion of files in directory for code: {} completed",
+    code
+  );
+  Ok(())
 }

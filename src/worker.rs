@@ -1,6 +1,6 @@
 use crate::controller::{
-  gen_subtitle, merge_avatar_video_chunks, merge_video_and_avatar_video, merge_video_and_subtitle,
-  mp4_to_wav, run_gen_video_python, send_email,
+  delete_file_in_dir, gen_subtitle, merge_avatar_video_chunks, merge_video_and_avatar_video,
+  merge_video_and_subtitle, mp4_to_wav, run_gen_video_python, send_email,
 };
 use crate::database;
 use crate::model::{task, worker};
@@ -16,9 +16,8 @@ pub async fn start_worker(mut rx: Receiver<worker::Request>) {
     if let Err(_) = mp4_to_wav(code).await {
       result(code, false);
       continue;
-    } else {
-      println!("mp4 to wav success!");
     }
+
     if let Err(_) = run_gen_video_python(code).await {
       result(code, false);
       continue;
@@ -70,4 +69,5 @@ fn result(code: &str, success: bool) {
       log::warn!("Email not found");
     }
   }
+  let _ = delete_file_in_dir(code);
 }
