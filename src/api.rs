@@ -1,10 +1,9 @@
-use crate::database;
-use crate::utils;
-use crate::utils::{create_dir, create_file};
+use crate::{
+  database,
+  model::{constant::*, email, task, video, worker},
+  utils::{self, create_dir, create_file},
+};
 use rocket::{form::Form, get, http::Status, post, serde::json::Json};
-use std::path::Path;
-
-use crate::model::{email, task, video, worker};
 
 #[post("/api/gen", data = "<data>")]
 pub async fn gen_video(
@@ -17,8 +16,8 @@ pub async fn gen_video(
   log::debug!("Generated code : {}", code);
 
   create_dir(&code, "").map_err(|_| Status::InternalServerError)?;
-  let video_path = create_file(&code, "video.mp4").map_err(|_| Status::InternalServerError)?;
-  let avatar_path = create_file(&code, "avatar.jpg").map_err(|_| Status::InternalServerError)?;
+  let video_path = create_file(&code, VIDEO_FILE).map_err(|_| Status::InternalServerError)?;
+  let avatar_path = create_file(&code, AVATAR_FILE).map_err(|_| Status::InternalServerError)?;
 
   data.video.persist_to(video_path).await.map_err(|e| {
     log::error!("Failed to persist video: {:?}", e);
@@ -97,28 +96,22 @@ pub async fn get_video(code: &str) -> Result<(), Status> {
 pub async fn download(code: &str) -> Result<rocket::fs::NamedFile, Status> {
   log::info!("Download file for code: {}", code);
 
-  let path_str = format!("tmp/{}/result_subtitle.mp4", code);
-  log::debug!("path={}", path_str);
-
-  let path = Path::new(path_str.as_str());
-
-  if path.exists() {
-    log::info!("Subtitle file found for code: {}", code);
-    return rocket::fs::NamedFile::open(path).await.map_err(|e| {
-      log::error!("Failed to open subtitle file for code: {}: {:?}", code, e);
+  if let Ok(file_path) = get_file_path(code, RESULT_WITH_SUBS_FILE) {
+    log::info!("Result with subtitles file found for code: {}", code);
+    return rocket::fs::NamedFile::open(file_path).await.map_err(|e| {
+      log::error!(
+        "Failed to open result with subtitles file for code: {}: {:?}",
+        code,
+        e
+      );
       Status::InternalServerError
     });
   }
 
-  let path_str = format!("tmp/{}/result.mp4", code);
-  log::debug!("path={}", path_str);
-
-  let path = Path::new(path_str.as_str());
-
-  if path.exists() {
-    log::info!("Video file found for code: {}", code);
-    rocket::fs::NamedFile::open(path).await.map_err(|e| {
-      log::error!("Failed to open video file for code: {}: {:?}", code, e);
+  if let Ok(file_path) = get_file_path(code, RESULT_FILE) {
+    log::info!("Result file found for code: {}", code);
+    rocket::fs::NamedFile::open(file_path).await.map_err(|e| {
+      log::error!("Failed to open result file for code: {}: {:?}", code, e);
       Status::InternalServerError
     })
   } else {

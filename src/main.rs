@@ -7,14 +7,13 @@ mod utils;
 mod worker;
 
 use api::{download, gen_video, get_file_path, get_video, set_email, test_fn};
-
+use dotenv::dotenv;
 use rocket::{
   self, catch, catchers,
   fairing::{Fairing, Info, Kind},
   http::Header,
   routes, {Request, Response},
 };
-
 pub struct CORS;
 
 #[rocket::async_trait]
@@ -49,6 +48,7 @@ fn handle_processing(_: &Request) -> &'static str {
 
 #[tokio::main]
 async fn main() {
+  dotenv().ok();
   logger::init_logger(log::LevelFilter::Info);
   database::init_db();
 

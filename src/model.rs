@@ -1,3 +1,4 @@
+pub mod constant;
 pub mod email;
 pub mod task;
 pub mod video;

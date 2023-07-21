@@ -1,17 +1,19 @@
-use crate::utils::{create_dir, create_file, get_file_path, make_request};
-use std::{collections::HashMap, fs};
-
+use crate::{
+  model::constant::*,
+  utils::{create_dir, create_file, get_file_path, make_request},
+};
 use lettre::{
   message::header::ContentType, transport::smtp::authentication::Credentials, Message,
   SmtpTransport, Transport,
 };
+use std::{collections::HashMap, fs};
 
 pub async fn mp4_to_wav(code: &str) -> Result<(), String> {
   log::info!("Converting MP4 to WAV for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("mp4_path", get_file_path(code, "video.mp4")?);
-  map.insert("wav_path", create_file(code, "audio.wav")?);
+  map.insert("mp4_path", get_file_path(code, VIDEO_FILE)?);
+  map.insert("wav_path", create_file(code, AUDIO_FILE)?);
 
   let response = make_request("http://localhost:5000/convert_mp4_to_wav", &map).await?;
 
@@ -29,9 +31,9 @@ pub async fn run_gen_video_python(code: &str) -> Result<(), String> {
   log::info!("Running gen video Python script for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("audio_path", get_file_path(code, "audio.wav")?);
-  map.insert("image_path", get_file_path(code, "avatar.jpg")?);
-  map.insert("result_dir", create_dir(code, "gen")?);
+  map.insert("audio_path", get_file_path(code, AUDIO_FILE)?);
+  map.insert("image_path", get_file_path(code, AVATAR_FILE)?);
+  map.insert("result_dir", create_dir(code, GEN_DIR)?);
 
   let response = make_request("http://localhost:5000/gen", &map).await?;
 
@@ -49,8 +51,8 @@ pub async fn merge_avatar_video_chunks(code: &str) -> Result<(), String> {
   log::info!("Merging video chunks for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("chunks_dir", get_file_path(code, "gen")?);
-  map.insert("output_path", create_file(code, "avatar_video.mp4")?);
+  map.insert("chunks_dir", get_file_path(code, GEN_DIR)?);
+  map.insert("output_path", create_file(code, AVATAR_VIDEO_FILE)?);
 
   let response = make_request("http://localhost:5000/merge_avatar_video_chunks", &map).await?;
 
@@ -73,12 +75,9 @@ pub async fn merge_video_and_avatar_video(
   log::info!("Merging video and avatar video for code: {}", code);
 
   let mut map = HashMap::new();
-  map.insert("main_video_path", get_file_path(code, "video.mp4")?);
-  map.insert(
-    "avatar_video_path",
-    get_file_path(code, "avatar_video.mp4")?,
-  );
-  map.insert("output_path", create_file(code, "result.mp4")?);
+  map.insert("main_video_path", get_file_path(code, VIDEO_FILE)?);
+  map.insert("avatar_video_path", get_file_path(code, AVATAR_VIDEO_FILE)?);
+  map.insert("output_path", create_file(code, RESULT_FILE)?);
   map.insert("position", format!("({},{})", x, y));
   map.insert("avatar_shape", shape.to_string());
 
@@ -98,8 +97,8 @@ pub async fn gen_subtitle(code: &str) -> Result<(), String> {
   log::info!("Generating subtitle for code: {}", &code);
 
   let mut map = HashMap::new();
-  map.insert("file_path", get_file_path(code, "audio.wav")?);
-  map.insert("save_path", create_file(code, "output.srt")?);
+  map.insert("file_path", get_file_path(code, AUDIO_FILE)?);
+  map.insert("save_path", create_file(code, SUBS_FILE)?);
 
   let response = make_request("http://localhost:5000/gen_subtitle", &map).await?;
 
@@ -114,20 +113,20 @@ pub async fn gen_subtitle(code: &str) -> Result<(), String> {
 }
 
 pub async fn merge_video_and_subtitle(code: &str) -> Result<(), String> {
-  log::info!("Generating subtitle for code: {}", &code);
+  log::info!("Merging video and subtitle subtitle for code: {}", &code);
 
   let mut map = HashMap::new();
-  map.insert("video_path", get_file_path(code, "result.mp4")?);
-  map.insert("subtitle_path", get_file_path(code, "output.srt")?);
-  map.insert("output_path", create_file(code, "result_subtitle.mp4")?);
+  map.insert("video_path", get_file_path(code, RESULT_FILE)?);
+  map.insert("subtitle_path", get_file_path(code, SUBS_FILE)?);
+  map.insert("output_path", create_file(code, RESULT_WITH_SUBS_FILE)?);
 
   let response = make_request("http://localhost:5000/merge_video_and_subtitle", &map).await?;
 
   if response.status().is_success() {
-    log::info!("Python gen subtitle success");
+    log::info!("Python merge video and subtitle subtitle success");
     Ok(())
   } else {
-    let err_msg = "Python gen subtitle failed".to_string();
+    let err_msg = "Python merge video and subtitle subtitle failed".to_string();
     log::error!("{}", err_msg);
     Err(err_msg)
   }
@@ -141,7 +140,7 @@ pub fn send_email(email: &str, code: &str, success: bool) -> Result<(), String> 
       "Hi, your video is ready, please download it from: http://localhost:3000/{}",
       code
     ),
-    false => String::from("Your video generation has failed"),
+    false => String::from("Video generation failed."),
   };
 
   let creds = Credentials::new(
@@ -192,10 +191,11 @@ pub fn delete_file_in_dir(code: &str) -> Result<(), String> {
     })?;
   };
   let files_to_keep = [
-    "result.mp4",
-    "video.mp4",
-    "avatar.jpg",
-    "result_subtitle.mp4",
+    RESULT_FILE,
+    VIDEO_FILE,
+    AVATAR_FILE,
+    RESULT_WITH_SUBS_FILE,
+    SUBS_FILE,
   ];
   let folder_path = format!("/home/lab603/Documents/slide_talker_backend/tmp/{}", code);
   let dir = fs::read_dir(&folder_path).map_err(|e| {

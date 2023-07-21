@@ -2,22 +2,22 @@ use rand::Rng;
 use reqwest;
 use std::{
   collections::HashMap,
+  env,
   fs::{self, File},
   path::Path,
   time::{SystemTime, UNIX_EPOCH},
 };
 
 pub fn get_file_path(code: &str, filename: &str) -> Result<String, String> {
-  log::info!("Getting path of file '{}' for code: {}", filename, code);
-  let path = format!(
-    "/home/lab603/Documents/slide_talker_backend/tmp/{}/{}",
-    code, filename
-  );
+  log::debug!("Getting path of file '{}' for code: {}", filename, code);
+
+  let root = env::var("ROOT").expect("Failed to get root path");
+  let path = format!("{}/tmp/{}/{}", root, code, filename);
   log::debug!("path={}", path);
 
   let path_str = Path::new(path.as_str());
   if path_str.exists() {
-    log::info!("File '{}' found for code: {}", filename, code);
+    log::debug!("File '{}' found for code: {}", filename, code);
     return Ok(path);
   }
   let err_msg = format!("File '{}' not found for code: {}", filename, code);
@@ -26,12 +26,10 @@ pub fn get_file_path(code: &str, filename: &str) -> Result<String, String> {
 }
 
 pub fn create_file(code: &str, filename: &str) -> Result<String, String> {
-  log::info!("Creating file '{}' for code: {}", filename, code);
+  log::debug!("Creating file '{}' for code: {}", filename, code);
 
-  let path = format!(
-    "/home/lab603/Documents/slide_talker_backend/tmp/{}/{}",
-    code, filename
-  );
+  let root = env::var("ROOT").expect("Failed to get root path");
+  let path = format!("{}/tmp/{}/{}", root, code, filename);
   log::debug!("path={}", path);
 
   File::create(&path).map_err(|e| {
@@ -40,17 +38,20 @@ pub fn create_file(code: &str, filename: &str) -> Result<String, String> {
     err_msg
   })?;
 
-  log::info!("File created");
+  log::debug!("File created");
   Ok(path)
 }
 
 pub fn create_dir(code: &str, dirname: &str) -> Result<String, String> {
-  log::info!("Creating directory '{}' for code: {}", dirname, code);
+  log::debug!("Creating directory '{}' for code: {}", dirname, code);
 
-  let mut path = format!("/home/lab603/Documents/slide_talker_backend/tmp/{}", code);
+  let root = env::var("ROOT").expect("Failed to get root path");
+  let path: String;
 
   if !dirname.is_empty() {
-    path = format!("{}/{}", path, dirname);
+    path = format!("{}/tmp/{}/{}", root, code, dirname);
+  } else {
+    path = format!("{}/tmp/{}", root, code);
   }
   log::debug!("path={}", path);
   fs::create_dir_all(&path).map_err(|e| {
@@ -58,7 +59,7 @@ pub fn create_dir(code: &str, dirname: &str) -> Result<String, String> {
     log::error!("{}", err_msg);
     err_msg
   })?;
-  log::info!("Directory created");
+  log::debug!("Directory created");
   Ok(path)
 }
 
