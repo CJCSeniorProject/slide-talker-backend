@@ -10,7 +10,7 @@ mod worker;
 #[cfg(test)]
 mod tests;
 
-use api::{download, gen_video, get_file_path, get_video, set_email};
+use api::{download, gen_video, get_file_path_for_code, get_video, set_email};
 use dotenv::dotenv;
 use rocket::{
   self, catch, catchers,
@@ -67,7 +67,13 @@ async fn main() {
     )
     .mount(
       "/",
-      routes![gen_video, set_email, get_video, download, get_file_path,],
+      routes![
+        gen_video,
+        set_email,
+        get_video,
+        download,
+        get_file_path_for_code,
+      ],
     )
     .attach(CORS)
     .manage(tx.clone())

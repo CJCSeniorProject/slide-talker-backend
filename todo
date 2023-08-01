@@ -1,3 +1,4 @@
 - [ ] database test 
-- [ ] timer test
 - [ ] refactor
+  - [ ] logger
+  - [ ] check email

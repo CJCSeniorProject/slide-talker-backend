@@ -1,12 +1,13 @@
 use crate::{model::task, utils::*};
-use rusqlite::{params, Connection, Result, ToSql};
+use rusqlite::{params, Connection, Result};
+use std::env;
 
-fn handle_error<T>(result: Result<T, rusqlite::Error>, title: &str) -> Result<T, String> {
-  result.map_err(|e| {
-    let err_msg = format!("{} failed with error: {:?}", title, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })
+fn connect_to_db() -> Result<Connection, Error> {
+  let root = env::var("ROOT").expect("Failed to get root path");
+  let path = format!("{}/slidetalker.db3", root);
+  log::debug!("path={}", path);
+
+  handle(Connection::open(path), "DB Connect")
 }
 
 pub fn init_db() {
@@ -36,121 +37,122 @@ pub fn init_db() {
   log::info!("Initialization completed successfully");
 }
 
-pub fn insert_task(code: &str) -> Result<(), String> {
+pub fn insert_task(code: &str) -> Result<(), Error> {
   log::info!("Inserting task with code: {}", code);
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  handle_error(
+  handle(
     conn.execute(
       "INSERT INTO task (code, status, date) VALUES (?1, ?2, ?3)",
       params![code, "Processing", get_date()],
     ),
-    "Insert Operation",
+    "Executeing insert operation",
   )?;
 
   log::info!("Insertion completed successfully");
   Ok(())
 }
 
-pub fn get_task_status(code: &str) -> Result<task::Status, String> {
+pub fn get_task_status(code: &str) -> Result<task::Status, Error> {
   log::info!("Getting task status with code: {}", code);
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  let mut stmt = handle_error(
+  let mut stmt = handle(
     conn.prepare("SELECT status FROM task WHERE code = ?1"),
-    "Select Operation",
+    "Preparing select operation",
   )?;
-  let mut rows = handle_error(stmt.query(params![code]), "Query Operation")?;
+  let mut rows = handle(stmt.query(params![code]), "Querying operation")?;
 
-  let row = handle_error(rows.next(), "Find Next Operation")?;
+  let row = handle(rows.next(), "Finding next row")?;
 
   if let Some(row) = row {
-    let status = handle_error(row.get(0), "Get Row Data Operation")?;
+    let status = handle(row.get(0), "Getting row data operation")?;
     Ok(status)
   } else {
-    Err("No task found".to_string())
+    Err(Error::new(ErrorKind::Other, "No task found"))
   }
 }
 
-pub fn get_task_email(code: &str) -> Result<String, String> {
+pub fn get_task_email(code: &str) -> Result<Option<String>, Error> {
   log::info!("Getting task email with code: {}", code);
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  let mut stmt = handle_error(
+  let mut stmt = handle(
     conn.prepare("SELECT email FROM task WHERE code = ?1"),
-    "Select Operation",
+    "Preparing select operation",
   )?;
-  let mut rows = handle_error(stmt.query(params![code]), "Query Operation")?;
+  let mut rows = handle(stmt.query(params![code]), "Querying operation")?;
 
-  let row = handle_error(rows.next(), "Find Next Operation")?;
+  let row = handle(rows.next(), "Finding next row")?;
 
-  //[Error] Get Row Data Operation failed with error: InvalidColumnType(0, "email", Null)
   if let Some(row) = row {
-    let email = handle_error(row.get(0), "Get Row Data Operation")?;
-    Ok(email)
+    match row.get(0) {
+      Ok(email) => Ok(Some(email)),
+      Err(_) => Ok(None), // email = NULL
+    }
   } else {
-    Err("None".to_string())
+    Err(Error::new(ErrorKind::Other, "No task found"))
   }
 }
 
-pub fn update_task_status(code: &str, status: task::Status) -> Result<(), String> {
+pub fn update_task_status(code: &str, status: task::Status) -> Result<(), Error> {
   log::info!("Updating task status with code: {}", code);
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  handle_error(
+  handle(
     conn.execute(
       "UPDATE task SET status = ?1 WHERE code = ?2",
       params![status, code],
     ),
-    "Update Operation",
+    "Executing update Operation",
   )?;
 
   log::info!("Update completed successfully");
   Ok(())
 }
 
-pub fn update_task_email(code: &str, email: &String) -> Result<(), String> {
+pub fn update_task_email(code: &str, email: &str) -> Result<(), Error> {
   log::info!("Updating task email with code: {}", code);
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  handle_error(
+  handle(
     conn.execute(
       "UPDATE task SET email = ?1 WHERE code = ?2",
       params![email, code],
     ),
-    "Update Operation",
+    "Executing update Operation",
   )?;
 
   log::info!("Update completed successfully");
   Ok(())
 }
 
-pub fn delete_task_by_code(code: &str) -> Result<(), String> {
+pub fn delete_task_by_code(code: &str) -> Result<(), Error> {
   log::info!("Deleting task in database by code");
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  handle_error(
+  handle(
     conn.execute("DELETE FROM task WHERE code = ?1", params![code]),
-    "DELETE Operation",
+    "Executing delete operation",
   )?;
 
   log::info!("Deletion of task in database by code completed");
   Ok(())
 }
 
-pub fn search_task_by_date() -> Result<Vec<String>, String> {
+pub fn search_task_by_date() -> Result<Vec<String>, Error> {
   log::info!("Seaching task in database by date");
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  let mut stmt = handle_error(
+  let mut stmt = handle(
     conn.prepare("SELECT code FROM task WHERE date <= ?1"),
-    "Select Operation",
+    "Preparing select operation",
   )?;
-  let mut rows = handle_error(stmt.query(params![get_last_week()]), "Query Operation")?;
+  let mut rows = handle(stmt.query(params![get_last_week()]), "Querying operation")?;
 
   let mut codes = Vec::new();
-  while let Some(row) = handle_error(rows.next(), "Find Next Operation")? {
-    let code = handle_error(row.get(0), "Get Row Data Operation")?;
+  while let Some(row) = handle(rows.next(), "Finding next row")? {
+    let code = handle(row.get(0), "Getting row data operation")?;
     codes.push(code);
   }
 
@@ -158,24 +160,24 @@ pub fn search_task_by_date() -> Result<Vec<String>, String> {
   Ok(codes)
 }
 
-pub fn check_code_exists(code: &str) -> Result<bool, String> {
+pub fn check_code_exists(code: &str) -> Result<bool, Error> {
   log::info!("Checking if code: {} exists in the database.", code);
-  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+  let conn = connect_to_db()?;
 
-  let count: i64 = handle_error(
+  let count: i64 = handle(
     conn.query_row(
       "SELECT COUNT(*) FROM task WHERE code = ?1",
       params![code],
       |row| row.get(0),
     ),
-    "Select Operation",
+    "Querying select operation",
   )?;
 
   if count > 0 {
-    log::debug!("code:{} exists", code);
+    log::debug!("code: {} exists", code);
     Ok(true)
   } else {
-    log::debug!("code:{} does not exist", code);
+    log::debug!("code: {} does not exist", code);
     Ok(false)
   }
 }

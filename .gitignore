@@ -1,6 +1,6 @@
 /target
 tmp
-logfile
+logfiles
 *.db3
 .env
 testdata

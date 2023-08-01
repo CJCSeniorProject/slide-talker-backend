@@ -2,15 +2,28 @@ use crate::model::constant::*;
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime};
 use rand::Rng;
 use reqwest;
+pub use std::io::{Error, ErrorKind};
 use std::{
   collections::HashMap,
   env,
   fs::{self, File},
-  path::Path,
+  path::{Path, PathBuf},
   time::{SystemTime, UNIX_EPOCH},
 };
 
-pub fn get_file_path(code: &str, filename: &str) -> Result<String, String> {
+pub fn handle<T, E>(result: Result<T, E>, msg: &str) -> Result<T, Error>
+where
+  E: std::error::Error,
+{
+  result.map_err(|e| {
+    log::error!("{} failed with error: {:?}", msg, e);
+
+    let err_msg = format!("{} failed", msg);
+    Error::new(ErrorKind::Other, err_msg)
+  })
+}
+
+pub fn get_file_path(code: &str, filename: &str) -> Result<String, Error> {
   log::debug!("Getting path of file '{}' for code: {}", filename, code);
 
   let root = env::var("ROOT").expect("Failed to get root path");
@@ -22,86 +35,76 @@ pub fn get_file_path(code: &str, filename: &str) -> Result<String, String> {
     log::debug!("File '{}' found for code: {}", filename, code);
     return Ok(path);
   }
-  let err_msg = format!("File '{}' not found for code: {}", filename, code);
-  log::error!("{}", err_msg);
-  Err(err_msg)
+  log::warn!("File '{}' not found for code: {}", filename, code);
+  Err(Error::new(ErrorKind::Other, ""))
 }
 
-pub fn create_file(code: &str, filename: &str) -> Result<String, String> {
+pub fn create_file(code: &str, filename: &str) -> Result<String, Error> {
   log::debug!("Creating file '{}' for code: {}", filename, code);
 
   let root = env::var("ROOT").expect("Failed to get root path");
   let path = format!("{}/tmp/{}/{}", root, code, filename);
   log::debug!("path={}", path);
 
-  File::create(&path).map_err(|e| {
-    let err_msg = format!("Failed to create file '{}': {}", path, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })?;
-
+  handle(File::create(&path), &format!("Creating file '{}'", path))?;
   log::debug!("File created");
   Ok(path)
 }
 
-pub fn create_dir(code: &str, dirname: &str) -> Result<String, String> {
+pub fn create_dir(code: &str, dirname: &str) -> Result<String, Error> {
   log::debug!("Creating directory '{}' for code: {}", dirname, code);
 
   let root = env::var("ROOT").expect("Failed to get root path");
   let path = format!("{}/tmp/{}/{}", root, code, dirname);
   log::debug!("path={}", path);
 
-  fs::create_dir_all(&path).map_err(|e| {
-    let err_msg = format!("Failed to create directory '{}': {}", path, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })?;
-
+  handle(
+    fs::create_dir_all(&path),
+    &format!("Creating directoey '{}'", path),
+  )?;
   log::debug!("Directory created");
+
   Ok(path)
 }
 
-pub fn create_code_dir(code: &str) -> Result<String, String> {
+pub fn create_code_dir(code: &str) -> Result<String, Error> {
   log::debug!("Creating code directory for code: {}", code);
 
   let root = env::var("ROOT").expect("Failed to get root path");
   let path = format!("{}/tmp/{}", root, code);
   log::debug!("path={}", path);
 
-  fs::create_dir_all(&path).map_err(|e| {
-    let err_msg = format!("Failed to create directory '{}': {}", path, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })?;
-
+  handle(
+    fs::create_dir_all(&path),
+    &format!("Creating directoey '{}'", path),
+  )?;
   log::debug!("Directory created");
+
   Ok(path)
 }
 
-pub fn delete_file_in_dir(code: &str) -> Result<(), String> {
+pub fn delete_file_in_dir(code: &str) -> Result<(), Error> {
   log::info!("Deleting files in directory by code: {}", code);
 
-  if let Ok(gen) = get_file_path(code, "gen") {
-    fs::remove_dir_all(&gen).map_err(|e| {
-      let err_msg = format!("Failed to remove directory '{}': {}", gen, e);
-      log::error!("{}", err_msg);
-      err_msg
-    })?;
-  };
+  let gen = handle(get_file_path(code, "gen"), "Getting file path")?;
+  handle(
+    fs::remove_dir_all(&gen),
+    &format!("Removing directory '{}'", gen),
+  )?;
+
   let files_to_keep = [RESULT_FILE, RESULT_WITH_SUBS_FILE];
   let folder_path = get_file_path(code, "")?;
 
-  let dir = fs::read_dir(&folder_path).map_err(|e| {
-    let err_msg = format!("Failed to read directory '{}': {}", folder_path, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })?;
+  let dir = handle(
+    fs::read_dir(&folder_path),
+    &format!("Reading file '{}'", folder_path),
+  )?;
+
   for entry in dir {
-    let entry = entry.map_err(|e| {
-      let err_msg = format!("Failed to read entry in directory '{}': {}", folder_path, e);
-      log::error!("{}", err_msg);
-      err_msg
-    })?;
+    let entry = handle(
+      entry,
+      &format!("Reading entry in directory '{}'", folder_path),
+    )?;
 
     let path = entry.path();
     let file_name = match path.file_name() {
@@ -114,17 +117,15 @@ pub fn delete_file_in_dir(code: &str) -> Result<(), String> {
       log::debug!("remove file={}", file_name);
 
       if path.is_dir() {
-        fs::remove_dir_all(&path).map_err(|e| {
-          let err_msg = format!("Failed to remove directory '{}': {}", path.display(), e);
-          log::error!("{}", err_msg);
-          err_msg
-        })?;
+        handle(
+          fs::remove_dir_all(&path),
+          &format!("Removing directory '{}'", path.display()),
+        )?;
       } else {
-        fs::remove_file(&path).map_err(|e| {
-          let err_msg = format!("Failed to remove file '{}': {}", path.display(), e);
-          log::error!("{}", err_msg);
-          err_msg
-        })?;
+        handle(
+          fs::remove_file(&path),
+          &format!("Removing file '{}'", path.display()),
+        )?;
       }
     }
   }
@@ -132,18 +133,22 @@ pub fn delete_file_in_dir(code: &str) -> Result<(), String> {
   Ok(())
 }
 
-pub fn delete_code_dir(code: &str) -> Result<(), String> {
+pub fn delete_code_dir(code: &str) -> Result<(), Error> {
   log::info!("Deleting directory for code: {}", code);
 
   let root = env::var("ROOT").expect("Failed to get root path");
   let path = format!("{}/tmp/{}", root, code);
   log::debug!("path={}", path);
 
-  fs::remove_dir_all(path).map_err(|e| {
-    let err_msg = format!("Failed to remove directory '{}': {}", code, e);
-    log::error!("{}", err_msg);
-    err_msg
-  })?;
+  let path_buf = PathBuf::from(&path);
+  if path_buf.exists() {
+    handle(
+      fs::remove_dir_all(path),
+      &format!("Removing directory '{}'", code),
+    )?;
+  } else {
+    log::warn!("Directory for code {} not found, skipping deletion.", code);
+  }
 
   log::info!("Directory for code {} deleted successfully", code);
   Ok(())
@@ -192,13 +197,9 @@ pub fn generate_rand_code() -> String {
 pub async fn make_request(
   url: &str,
   map: &HashMap<&str, String>,
-) -> Result<reqwest::Response, String> {
+) -> Result<reqwest::Response, Error> {
   let client = reqwest::Client::new();
-  client.post(url).json(map).send().await.map_err(|e| {
-    let err_msg = format!("Request failed with error: {:?}", e);
-    log::error!("{}", err_msg);
-    err_msg
-  })
+  handle(client.post(url).json(map).send().await, "Requesting")
 }
 
 pub fn get_date() -> NaiveDate {
@@ -221,10 +222,9 @@ pub fn get_last_week() -> NaiveDate {
   seven_days_ago
 }
 
-pub fn date_from_string(date: &str) -> Result<NaiveDate, String> {
-  NaiveDate::parse_from_str(date, "%Y-%m-%d").map_err(|e| {
-    let err_mag = format!("Failed to parse date from str '{}': {:?}", date, e);
-    log::error!("{}", err_mag);
-    err_mag
-  })
+pub fn date_from_string(date: &str) -> Result<NaiveDate, Error> {
+  handle(
+    NaiveDate::parse_from_str(date, "%Y-%m-%d"),
+    &format!("Parsing date from str '{}'", date),
+  )
 }
