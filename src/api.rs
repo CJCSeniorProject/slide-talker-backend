@@ -1,7 +1,7 @@
 use crate::{
   database,
   model::{constant::*, email, task, video, worker},
-  utils::{self, create_dir, create_file},
+  utils,
 };
 use rocket::{form::Form, get, http::Status, post, serde::json::Json};
 
@@ -12,12 +12,16 @@ pub async fn gen_video(
 ) -> Result<Json<video::Response>, Status> {
   log::info!("Generating video");
   // gen random code
-  let code = utils::generate_rand_code();
+  let mut code = utils::generate_rand_code();
   log::debug!("Generated code : {}", code);
-
-  create_dir(&code, "").map_err(|_| Status::InternalServerError)?;
-  let video_path = create_file(&code, VIDEO_FILE).map_err(|_| Status::InternalServerError)?;
-  let avatar_path = create_file(&code, AVATAR_FILE).map_err(|_| Status::InternalServerError)?;
+  while let Some(true) = database::check_code_exists(&code).ok() {
+    code = utils::generate_rand_code();
+  }
+  utils::create_code_dir(&code).map_err(|_| Status::InternalServerError)?;
+  let video_path =
+    utils::create_file(&code, VIDEO_FILE).map_err(|_| Status::InternalServerError)?;
+  let avatar_path =
+    utils::create_file(&code, AVATAR_FILE).map_err(|_| Status::InternalServerError)?;
 
   data.video.persist_to(video_path).await.map_err(|e| {
     log::error!("Failed to persist video: {:?}", e);
@@ -126,129 +130,4 @@ pub fn get_file_path(code: &str, filename: &str) -> Result<String, Status> {
     return Ok(path);
   }
   Err(Status::NotFound)
-}
-
-#[get("/test")]
-pub fn test_fn() -> Result<Status, Status> {
-  Ok(Status::UnprocessableEntity)
-}
-
-// /file/465787/audio.wav
-#[cfg(test)]
-mod tests {
-  use super::*;
-  use rocket::http::{ContentType, Status};
-  use rocket::local::blocking::Client;
-  use rocket::routes;
-  use serde_urlencoded::to_string;
-
-  #[test]
-  fn test_set_email() {
-    let rocket = rocket::build().mount("/", routes![set_email]);
-    let client = Client::untracked(rocket).expect("Failed to create Rocket client");
-
-    let form_data = email::Request {
-      email: String::from("example"),
-    };
-
-    // 将表单数据转换为 URL 编码的字符串
-    let encoded_data = to_string(&form_data).expect("Failed to encode form data");
-
-    // 将 URL 编码的字符串转换为字节数组
-    let bytes: Vec<u8> = encoded_data.into_bytes();
-
-    let response = client
-      .post("/api/gen/code")
-      .header(ContentType::Form)
-      .body(bytes)
-      .dispatch();
-
-    assert_eq!(response.status(), Status::UnprocessableEntity);
-  }
-
-  // use reqwest;
-  // use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE, USER_AGENT};
-  // #[actix_rt::test]
-  // #[test]
-  // fn test_gen_video() {
-  //   let mut headers = HeaderMap::new();
-  //   headers.insert(USER_AGENT, HeaderValue::from_static("reqwest"));
-  //   headers.insert(CONTENT_TYPE, HeaderValue::from_static("image/png"));
-
-  //   let form = reqwest::blocking::multipart::Form::new()
-  //     .file(
-  //       "video",
-  //       "/home/lab603/Documents/slide_talker_backend/testdata/testvid.mp4",
-  //     )
-  //     .expect("")
-  //     .file(
-  //       "avatar",
-  //       "/home/lab603/Documents/slide_talker_backend/testdata/testpic.jpg",
-  //     )
-  //     .expect("")
-  //     .text("x", "0.5")
-  //     .text("y", "0.5")
-  //     .text("shape", "circle")
-  //     .text("subtitle", "false");
-
-  // 将文件 Part 添加到表单数据中
-  // form = form.part("photo", part);
-  // let client = reqwest::blocking::Client::new();
-  // let response = client
-  //   .post("http://localhost:3000/api/gen")
-  //   .header(CONTENT_TYPE, "multipart/form-data")
-  //   .multipart(form)
-  //   .send()
-  //   .expect("");
-
-  // let response = client
-  //   .get("http://localhost:3000/test")
-  //   .send()
-  //   .expect("msg");
-
-  // assert_eq!(response.status(), Status::UnprocessableEntity.code);
-  // }
-  // #[test]
-  // fn test_gen_video() {
-  //   let rocket = rocket::build().mount("/", routes![gen_video]);
-
-  //   let client = reqwest::Client::new();
-  //   let client = Client::untracked(rocket).expect("Failed to create Rocket client");
-
-  //   let temp_file_video = TempFile::File {
-  //     file_name: Some(&FileName::new("video.mp4")),
-  //     content_type: Some(ContentType::MP4),
-  //     path: Either::Right(PathBuf::from(
-  //       "/home/lab603/Documents/slide_talker_backend/testdata/testvid.mp4",
-  //     )),
-  //     len: 100,
-  //   };
-
-  //   let temp_file_avatar = TempFile::File {
-  //     file_name: Some(&FileName::new("avatar.jpg")),
-  //     content_type: Some(ContentType::JPEG),
-  //     path: Either::Right(PathBuf::from(
-  //       "/home/lab603/Documents/slide_talker_backend/testdata/testvid.jpg",
-  //     )),
-  //     len: 100,
-  //   };
-  //   let file = File::open("path/to/file.txt").expect("Failed to open file");
-  //   // 准备测试数据
-  //   let form_data = GenVideoRequestForm {
-  //     video: file,
-  //     avatar: file,
-  //     x: 0.5,
-  //     y: 0.5,
-  //     shape: "circle",
-  //     subtitle: false,
-  //   };
-
-  //   let response = client
-  //     .post("/api/gen")
-  //     .header(ContentType::Form)
-  //     .body(form)
-  //     .dispatch();
-
-  //   assert_eq!(response.status(), Status::UnprocessableEntity);
-  // }
 }

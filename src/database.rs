@@ -1,5 +1,5 @@
-use crate::model::task;
-use rusqlite::{params, Connection, Result};
+use crate::{model::task, utils::*};
+use rusqlite::{params, Connection, Result, ToSql};
 
 fn handle_error<T>(result: Result<T, rusqlite::Error>, title: &str) -> Result<T, String> {
   result.map_err(|e| {
@@ -19,9 +19,10 @@ pub fn init_db() {
   conn
     .execute(
       "CREATE TABLE IF NOT EXISTS task (
-      code VARCHAR(8) NOT NULL,
+      code VARCHAR(10) NOT NULL,
       email VARCHAR(64),
       status VARCHAR(16) NOT NULL,
+      date DATE NOT NULL,
       PRIMARY KEY (code),
       UNIQUE (code)
     );",
@@ -35,18 +36,14 @@ pub fn init_db() {
   log::info!("Initialization completed successfully");
 }
 
-// fn get_conn() -> Connection {
-//   handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?
-// }
-
 pub fn insert_task(code: &str) -> Result<(), String> {
   log::info!("Inserting task with code: {}", code);
   let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
 
   handle_error(
     conn.execute(
-      "INSERT INTO task (code, status) VALUES (?1, ?2)",
-      params![code, "Processing"],
+      "INSERT INTO task (code, status, date) VALUES (?1, ?2, ?3)",
+      params![code, "Processing", get_date()],
     ),
     "Insert Operation",
   )?;
@@ -126,4 +123,59 @@ pub fn update_task_email(code: &str, email: &String) -> Result<(), String> {
 
   log::info!("Update completed successfully");
   Ok(())
+}
+
+pub fn delete_task_by_code(code: &str) -> Result<(), String> {
+  log::info!("Deleting task in database by code");
+  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+
+  handle_error(
+    conn.execute("DELETE FROM task WHERE code = ?1", params![code]),
+    "DELETE Operation",
+  )?;
+
+  log::info!("Deletion of task in database by code completed");
+  Ok(())
+}
+
+pub fn search_task_by_date() -> Result<Vec<String>, String> {
+  log::info!("Seaching task in database by date");
+  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+
+  let mut stmt = handle_error(
+    conn.prepare("SELECT code FROM task WHERE date <= ?1"),
+    "Select Operation",
+  )?;
+  let mut rows = handle_error(stmt.query(params![get_last_week()]), "Query Operation")?;
+
+  let mut codes = Vec::new();
+  while let Some(row) = handle_error(rows.next(), "Find Next Operation")? {
+    let code = handle_error(row.get(0), "Get Row Data Operation")?;
+    codes.push(code);
+  }
+
+  log::info!("Seaching of task in database by date completed");
+  Ok(codes)
+}
+
+pub fn check_code_exists(code: &str) -> Result<bool, String> {
+  log::info!("Checking if code: {} exists in the database.", code);
+  let conn = handle_error(Connection::open("./slidetalker.db3"), "DB Connect")?;
+
+  let count: i64 = handle_error(
+    conn.query_row(
+      "SELECT COUNT(*) FROM task WHERE code = ?1",
+      params![code],
+      |row| row.get(0),
+    ),
+    "Select Operation",
+  )?;
+
+  if count > 0 {
+    log::debug!("code:{} exists", code);
+    Ok(true)
+  } else {
+    log::debug!("code:{} does not exist", code);
+    Ok(false)
+  }
 }

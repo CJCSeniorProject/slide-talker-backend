@@ -1,0 +1,312 @@
+[2023-07-31 12:32:47.535] [Info] Initializing db
+[2023-07-31 12:32:47.537] [Info] Initialization completed successfully
+[2023-07-31 12:32:47.538] [Info] Deleting task in database by code
+[2023-07-31 12:35:51.159] [Info] Initializing db
+[2023-07-31 12:35:51.160] [Info] Initialization completed successfully
+[2023-07-31 12:35:51.161] [Info] Deleting task in database by code
+[2023-07-31 12:37:03.360] [Info] Initializing db
+[2023-07-31 12:37:03.361] [Info] Initialization completed successfully
+[2023-07-31 12:37:03.362] [Info] Deleting task in database by code
+[2023-07-31 12:39:40.369] [Info] Initializing db
+[2023-07-31 12:39:40.371] [Info] Initialization completed successfully
+[2023-07-31 12:39:40.372] [Info] Deleting task in database by code
+[2023-07-31 12:39:40.373] [Info] Deletion of task in database by code completed
+[2023-07-31 12:39:40.373] [Info] Starting video generation worker!
+[2023-07-31 12:39:40.374] [Info] 🔧 Configured for debug.
+[2023-07-31 12:39:40.375] [Info] address: 127.0.0.1
+[2023-07-31 12:39:40.376] [Info] port: 8000
+[2023-07-31 12:39:40.377] [Info] workers: 20
+[2023-07-31 12:39:40.377] [Info] max blocking threads: 512
+[2023-07-31 12:39:40.378] [Info] ident: Rocket
+[2023-07-31 12:39:40.379] [Info] IP header: X-Real-IP
+[2023-07-31 12:39:40.380] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-31 12:39:40.381] [Info] temp dir: /tmp
+[2023-07-31 12:39:40.381] [Info] http/2: true
+[2023-07-31 12:39:40.382] [Info] keep-alive: 5s
+[2023-07-31 12:39:40.383] [Info] tls: disabled
+[2023-07-31 12:39:40.384] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-31 12:39:40.385] [Info] log level: normal
+[2023-07-31 12:39:40.386] [Info] cli colors: true
+[2023-07-31 12:39:40.387] [Info] 📬 Routes:
+[2023-07-31 12:39:40.387] [Info] (gen_video) POST /api/gen
+[2023-07-31 12:39:40.388] [Info] (download) GET /download/<code>
+[2023-07-31 12:39:40.389] [Info] (set_email) POST /api/gen/<code>
+[2023-07-31 12:39:40.390] [Info] (get_video) GET /api/gen/<code>
+[2023-07-31 12:39:40.391] [Info] (get_file_path) GET /file/<code>/<filename>
+[2023-07-31 12:39:40.392] [Info] 🥅 Catchers:
+[2023-07-31 12:39:40.393] [Info] (handle_unprocessable_entity) 422
+[2023-07-31 12:39:40.394] [Info] (handle_processing) 499
+[2023-07-31 12:39:40.395] [Info] 📡 Fairings:
+[2023-07-31 12:39:40.395] [Info] Add CORS headers to responses (response)
+[2023-07-31 12:39:40.396] [Info] Shield (liftoff, response, singleton)
+[2023-07-31 12:39:40.397] [Info] 🛡️ Shield:
+[2023-07-31 12:39:40.398] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-31 12:39:40.399] [Info] X-Content-Type-Options: nosniff
+[2023-07-31 12:39:40.400] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-31 12:39:40.401] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-31 12:39:40.402] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-31 12:39:40.403] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-31 12:39:40.404] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-31 12:39:46.552] [Warn] Received SIGINT. Requesting shutdown.
+[2023-07-31 12:40:49.574] [Info] Initializing db
+[2023-07-31 12:40:49.576] [Info] Initialization completed successfully
+[2023-07-31 12:40:49.576] [Info] Deleting task in database by code
+[2023-07-31 12:40:49.578] [Info] Deletion of task in database by code completed
+[2023-07-31 12:40:49.578] [Info] Starting video generation worker!
+[2023-07-31 12:40:49.579] [Info] 🔧 Configured for debug.
+[2023-07-31 12:40:49.580] [Info] address: 127.0.0.1
+[2023-07-31 12:40:49.581] [Info] port: 8000
+[2023-07-31 12:40:49.582] [Info] workers: 20
+[2023-07-31 12:40:49.583] [Info] max blocking threads: 512
+[2023-07-31 12:40:49.584] [Info] ident: Rocket
+[2023-07-31 12:40:49.584] [Info] IP header: X-Real-IP
+[2023-07-31 12:40:49.585] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-31 12:40:49.586] [Info] temp dir: /tmp
+[2023-07-31 12:40:49.587] [Info] http/2: true
+[2023-07-31 12:40:49.588] [Info] keep-alive: 5s
+[2023-07-31 12:40:49.589] [Info] tls: disabled
+[2023-07-31 12:40:49.590] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-31 12:40:49.590] [Info] log level: normal
+[2023-07-31 12:40:49.591] [Info] cli colors: true
+[2023-07-31 12:40:49.592] [Info] 📬 Routes:
+[2023-07-31 12:40:49.593] [Info] (gen_video) POST /api/gen
+[2023-07-31 12:40:49.594] [Info] (download) GET /download/<code>
+[2023-07-31 12:40:49.595] [Info] (set_email) POST /api/gen/<code>
+[2023-07-31 12:40:49.596] [Info] (get_video) GET /api/gen/<code>
+[2023-07-31 12:40:49.597] [Info] (get_file_path) GET /file/<code>/<filename>
+[2023-07-31 12:40:49.598] [Info] 🥅 Catchers:
+[2023-07-31 12:40:49.598] [Info] (handle_unprocessable_entity) 422
+[2023-07-31 12:40:49.599] [Info] (handle_processing) 499
+[2023-07-31 12:40:49.600] [Info] 📡 Fairings:
+[2023-07-31 12:40:49.601] [Info] Shield (liftoff, response, singleton)
+[2023-07-31 12:40:49.602] [Info] Add CORS headers to responses (response)
+[2023-07-31 12:40:49.603] [Info] 🛡️ Shield:
+[2023-07-31 12:40:49.604] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-31 12:40:49.604] [Info] X-Content-Type-Options: nosniff
+[2023-07-31 12:40:49.605] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-31 12:40:49.606] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-31 12:40:49.607] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-31 12:40:49.608] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-31 12:40:49.609] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-31 12:40:51.177] [Warn] Received SIGINT. Requesting shutdown.
+[2023-07-31 12:42:33.584] [Info] Initializing db
+[2023-07-31 12:42:33.585] [Info] Initialization completed successfully
+[2023-07-31 12:42:33.586] [Info] Deleting task in database by code
+[2023-07-31 12:42:33.587] [Info] Deletion of task in database by code completed
+[2023-07-31 12:42:33.588] [Info] Starting video generation worker!
+[2023-07-31 12:42:33.589] [Info] 🔧 Configured for debug.
+[2023-07-31 12:42:33.590] [Info] address: 127.0.0.1
+[2023-07-31 12:42:33.591] [Info] port: 8000
+[2023-07-31 12:42:33.591] [Info] workers: 20
+[2023-07-31 12:42:33.592] [Info] max blocking threads: 512
+[2023-07-31 12:42:33.593] [Info] ident: Rocket
+[2023-07-31 12:42:33.594] [Info] IP header: X-Real-IP
+[2023-07-31 12:42:33.595] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-31 12:42:33.596] [Info] temp dir: /tmp
+[2023-07-31 12:42:33.597] [Info] http/2: true
+[2023-07-31 12:42:33.597] [Info] keep-alive: 5s
+[2023-07-31 12:42:33.598] [Info] tls: disabled
+[2023-07-31 12:42:33.599] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-31 12:42:33.600] [Info] log level: normal
+[2023-07-31 12:42:33.601] [Info] cli colors: true
+[2023-07-31 12:42:33.602] [Info] 📬 Routes:
+[2023-07-31 12:42:33.603] [Info] (gen_video) POST /api/gen
+[2023-07-31 12:42:33.604] [Info] (download) GET /download/<code>
+[2023-07-31 12:42:33.604] [Info] (set_email) POST /api/gen/<code>
+[2023-07-31 12:42:33.605] [Info] (get_video) GET /api/gen/<code>
+[2023-07-31 12:42:33.606] [Info] (get_file_path) GET /file/<code>/<filename>
+[2023-07-31 12:42:33.607] [Info] 🥅 Catchers:
+[2023-07-31 12:42:33.608] [Info] (handle_unprocessable_entity) 422
+[2023-07-31 12:42:33.609] [Info] (handle_processing) 499
+[2023-07-31 12:42:33.610] [Info] 📡 Fairings:
+[2023-07-31 12:42:33.610] [Info] Add CORS headers to responses (response)
+[2023-07-31 12:42:33.611] [Info] Shield (liftoff, response, singleton)
+[2023-07-31 12:42:33.612] [Info] 🛡️ Shield:
+[2023-07-31 12:42:33.613] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-31 12:42:33.614] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-31 12:42:33.615] [Info] X-Content-Type-Options: nosniff
+[2023-07-31 12:42:33.616] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-31 12:42:33.617] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-31 12:42:33.618] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-31 12:42:33.618] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-31 12:42:35.426] [Warn] Received SIGINT. Requesting shutdown.
+[2023-07-31 12:58:11.349] [Info] Initializing db
+[2023-07-31 12:58:11.351] [Info] Initialization completed successfully
+[2023-07-31 12:58:11.352] [Info] Deleting task in database by code
+[2023-07-31 12:58:11.355] [Info] Deletion of task in database by code completed
+[2023-07-31 12:58:11.356] [Info] Starting video generation worker!
+[2023-07-31 12:58:11.357] [Info] 🔧 Configured for debug.
+[2023-07-31 12:58:11.358] [Info] address: 127.0.0.1
+[2023-07-31 12:58:11.358] [Info] port: 8000
+[2023-07-31 12:58:11.359] [Info] workers: 20
+[2023-07-31 12:58:11.360] [Info] max blocking threads: 512
+[2023-07-31 12:58:11.361] [Info] ident: Rocket
+[2023-07-31 12:58:11.362] [Info] IP header: X-Real-IP
+[2023-07-31 12:58:11.363] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-31 12:58:11.364] [Info] temp dir: /tmp
+[2023-07-31 12:58:11.364] [Info] http/2: true
+[2023-07-31 12:58:11.365] [Info] keep-alive: 5s
+[2023-07-31 12:58:11.366] [Info] tls: disabled
+[2023-07-31 12:58:11.367] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-31 12:58:11.368] [Info] log level: normal
+[2023-07-31 12:58:11.369] [Info] cli colors: true
+[2023-07-31 12:58:11.370] [Info] 📬 Routes:
+[2023-07-31 12:58:11.371] [Info] (gen_video) POST /api/gen
+[2023-07-31 12:58:11.372] [Info] (download) GET /download/<code>
+[2023-07-31 12:58:11.372] [Info] (set_email) POST /api/gen/<code>
+[2023-07-31 12:58:11.373] [Info] (get_video) GET /api/gen/<code>
+[2023-07-31 12:58:11.374] [Info] (get_file_path) GET /file/<code>/<filename>
+[2023-07-31 12:58:11.375] [Info] 🥅 Catchers:
+[2023-07-31 12:58:11.376] [Info] (handle_unprocessable_entity) 422
+[2023-07-31 12:58:11.377] [Info] (handle_processing) 499
+[2023-07-31 12:58:11.378] [Info] 📡 Fairings:
+[2023-07-31 12:58:11.379] [Info] Add CORS headers to responses (response)
+[2023-07-31 12:58:11.379] [Info] Shield (liftoff, response, singleton)
+[2023-07-31 12:58:11.380] [Info] 🛡️ Shield:
+[2023-07-31 12:58:11.381] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-31 12:58:11.382] [Info] X-Content-Type-Options: nosniff
+[2023-07-31 12:58:11.383] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-31 12:58:11.383] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-31 12:58:11.384] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-31 12:58:11.385] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-31 12:58:11.386] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-31 12:58:14.145] [Warn] Received SIGINT. Requesting shutdown.
+[2023-07-31 15:35:24.891] [Info] Initializing db
+[2023-07-31 15:35:24.892] [Info] Initialization completed successfully
+[2023-07-31 15:35:24.893] [Info] Starting video generation worker!
+[2023-07-31 15:35:24.894] [Info] 🔧 Configured for debug.
+[2023-07-31 15:35:24.895] [Info] address: 127.0.0.1
+[2023-07-31 15:35:24.896] [Info] port: 8000
+[2023-07-31 15:35:24.897] [Info] workers: 20
+[2023-07-31 15:35:24.897] [Info] max blocking threads: 512
+[2023-07-31 15:35:24.898] [Info] ident: Rocket
+[2023-07-31 15:35:24.899] [Info] IP header: X-Real-IP
+[2023-07-31 15:35:24.900] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-31 15:35:24.901] [Info] temp dir: /tmp
+[2023-07-31 15:35:24.902] [Info] http/2: true
+[2023-07-31 15:35:24.903] [Info] keep-alive: 5s
+[2023-07-31 15:35:24.903] [Info] tls: disabled
+[2023-07-31 15:35:24.904] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-31 15:35:24.905] [Info] log level: normal
+[2023-07-31 15:35:24.906] [Info] cli colors: true
+[2023-07-31 15:35:24.907] [Info] 📬 Routes:
+[2023-07-31 15:35:24.908] [Info] (gen_video) POST /api/gen
+[2023-07-31 15:35:24.909] [Info] (download) GET /download/<code>
+[2023-07-31 15:35:24.910] [Info] (set_email) POST /api/gen/<code>
+[2023-07-31 15:35:24.910] [Info] (get_video) GET /api/gen/<code>
+[2023-07-31 15:35:24.911] [Info] (get_file_path) GET /file/<code>/<filename>
+[2023-07-31 15:35:24.912] [Info] 🥅 Catchers:
+[2023-07-31 15:35:24.913] [Info] (handle_unprocessable_entity) 422
+[2023-07-31 15:35:24.914] [Info] (handle_processing) 499
+[2023-07-31 15:35:24.915] [Info] 📡 Fairings:
+[2023-07-31 15:35:24.916] [Info] Add CORS headers to responses (response)
+[2023-07-31 15:35:24.917] [Info] Shield (liftoff, response, singleton)
+[2023-07-31 15:35:24.918] [Info] 🛡️ Shield:
+[2023-07-31 15:35:24.919] [Info] X-Content-Type-Options: nosniff
+[2023-07-31 15:35:24.919] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-31 15:35:24.920] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-31 15:35:24.921] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-31 15:35:24.922] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-31 15:35:24.923] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-31 15:35:24.924] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-31 15:35:27.894] [Info] Deleting logfiles
+[2023-07-31 15:35:27.900] [Info] Seaching task in database by date
+[2023-07-31 15:35:27.901] [Info] Seaching of task in database by date completed
+[2023-07-31 15:35:27.902] [Info] Deleting directory for code: test_task1
+[2023-07-31 15:35:27.903] [Error] Failed to remove directory 'test_task1': No such file or directory (os error 2)
+[2023-07-31 15:35:27.904] [Info] Deleting directory for code: test_task2
+[2023-07-31 15:35:27.904] [Error] Failed to remove directory 'test_task2': No such file or directory (os error 2)
+[2023-07-31 15:35:27.905] [Info] Deleting directory for code: test_task3
+[2023-07-31 15:35:27.906] [Error] Failed to remove directory 'test_task3': No such file or directory (os error 2)
+[2023-07-31 15:35:27.907] [Info] Deleting directory for code: task1
+[2023-07-31 15:35:27.908] [Error] Failed to remove directory 'task1': No such file or directory (os error 2)
+[2023-07-31 15:35:27.909] [Info] Deleting directory for code: task2
+[2023-07-31 15:35:27.910] [Error] Failed to remove directory 'task2': No such file or directory (os error 2)
+[2023-07-31 15:35:27.910] [Info] Deleting directory for code: task3
+[2023-07-31 15:35:27.911] [Error] Failed to remove directory 'task3': No such file or directory (os error 2)
+[2023-07-31 15:35:27.912] [Info] Deleting task in database by code
+[2023-07-31 15:35:27.913] [Error] DELETE Operation failed with error: InvalidParameterCount(2, 1)
+[2023-07-31 15:35:30.915] [Info] Deleting logfiles
+[2023-07-31 15:35:30.920] [Info] Seaching task in database by date
+[2023-07-31 15:35:30.922] [Info] Seaching of task in database by date completed
+[2023-07-31 15:35:30.923] [Info] Deleting directory for code: test_task1
+[2023-07-31 15:35:30.923] [Error] Failed to remove directory 'test_task1': No such file or directory (os error 2)
+[2023-07-31 15:35:30.924] [Info] Deleting directory for code: test_task2
+[2023-07-31 15:35:30.925] [Error] Failed to remove directory 'test_task2': No such file or directory (os error 2)
+[2023-07-31 15:35:30.926] [Info] Deleting directory for code: test_task3
+[2023-07-31 15:35:30.927] [Error] Failed to remove directory 'test_task3': No such file or directory (os error 2)
+[2023-07-31 15:35:30.927] [Info] Deleting directory for code: task1
+[2023-07-31 15:35:30.928] [Error] Failed to remove directory 'task1': No such file or directory (os error 2)
+[2023-07-31 15:35:30.929] [Info] Deleting directory for code: task2
+[2023-07-31 15:35:30.930] [Error] Failed to remove directory 'task2': No such file or directory (os error 2)
+[2023-07-31 15:35:30.931] [Info] Deleting directory for code: task3
+[2023-07-31 15:35:30.932] [Error] Failed to remove directory 'task3': No such file or directory (os error 2)
+[2023-07-31 15:35:30.933] [Info] Deleting task in database by code
+[2023-07-31 15:35:30.934] [Error] DELETE Operation failed with error: InvalidParameterCount(2, 1)
+[2023-07-31 15:35:32.385] [Warn] Received SIGINT. Requesting shutdown.
+[2023-07-31 17:22:38.040] [Info] Initializing db
+[2023-07-31 17:22:38.042] [Info] Initialization completed successfully
+[2023-07-31 17:22:38.043] [Info] Starting video generation worker!
+[2023-07-31 17:22:38.044] [Info] 🔧 Configured for debug.
+[2023-07-31 17:22:38.045] [Info] address: 127.0.0.1
+[2023-07-31 17:22:38.045] [Info] port: 8000
+[2023-07-31 17:22:38.046] [Info] workers: 20
+[2023-07-31 17:22:38.047] [Info] max blocking threads: 512
+[2023-07-31 17:22:38.048] [Info] ident: Rocket
+[2023-07-31 17:22:38.049] [Info] IP header: X-Real-IP
+[2023-07-31 17:22:38.050] [Info] limits: bytes = 8KiB, data-form = 1GiB, file = 1GiB, form = 1GiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+[2023-07-31 17:22:38.051] [Info] temp dir: /tmp
+[2023-07-31 17:22:38.051] [Info] http/2: true
+[2023-07-31 17:22:38.052] [Info] keep-alive: 5s
+[2023-07-31 17:22:38.053] [Info] tls: disabled
+[2023-07-31 17:22:38.054] [Info] shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+[2023-07-31 17:22:38.055] [Info] log level: normal
+[2023-07-31 17:22:38.056] [Info] cli colors: true
+[2023-07-31 17:22:38.057] [Info] 📬 Routes:
+[2023-07-31 17:22:38.058] [Info] (gen_video) POST /api/gen
+[2023-07-31 17:22:38.058] [Info] (download) GET /download/<code>
+[2023-07-31 17:22:38.059] [Info] (set_email) POST /api/gen/<code>
+[2023-07-31 17:22:38.060] [Info] (get_video) GET /api/gen/<code>
+[2023-07-31 17:22:38.061] [Info] (get_file_path) GET /file/<code>/<filename>
+[2023-07-31 17:22:38.062] [Info] 🥅 Catchers:
+[2023-07-31 17:22:38.063] [Info] (handle_unprocessable_entity) 422
+[2023-07-31 17:22:38.064] [Info] (handle_processing) 499
+[2023-07-31 17:22:38.065] [Info] 📡 Fairings:
+[2023-07-31 17:22:38.065] [Info] Add CORS headers to responses (response)
+[2023-07-31 17:22:38.066] [Info] Shield (liftoff, response, singleton)
+[2023-07-31 17:22:38.067] [Info] 🛡️ Shield:
+[2023-07-31 17:22:38.068] [Info] X-Content-Type-Options: nosniff
+[2023-07-31 17:22:38.069] [Info] X-Frame-Options: SAMEORIGIN
+[2023-07-31 17:22:38.070] [Info] Permissions-Policy: interest-cohort=()
+[2023-07-31 17:22:38.071] [Warn] 🚀 Rocket has launched from http://127.0.0.1:8000
+[2023-07-31 17:22:38.072] [Warn] Rocket is executing inside of a custom runtime.
+[2023-07-31 17:22:38.073] [Info] Rocket's runtime is enabled via `#[rocket::main]` or `#[launch]`.
+[2023-07-31 17:22:38.074] [Info] Forced shutdown is disabled. Runtime settings may be suboptimal.
+[2023-07-31 17:22:41.044] [Info] Deleting logfiles
+[2023-07-31 17:22:41.046] [Info] Seaching task in database by date
+[2023-07-31 17:22:41.048] [Info] Seaching of task in database by date completed
+[2023-07-31 17:22:41.050] [Info] Deleting directory for code: test_task1
+[2023-07-31 17:22:41.051] [Error] Failed to remove directory 'test_task1': No such file or directory (os error 2)
+[2023-07-31 17:22:41.052] [Info] Deleting task in database by code
+[2023-07-31 17:22:41.055] [Info] Deletion of task in database by code completed
+[2023-07-31 17:22:41.056] [Info] Deleting directory for code: test_task2
+[2023-07-31 17:22:41.056] [Error] Failed to remove directory 'test_task2': No such file or directory (os error 2)
+[2023-07-31 17:22:41.057] [Info] Deleting task in database by code
+[2023-07-31 17:22:41.060] [Info] Deletion of task in database by code completed
+[2023-07-31 17:22:41.061] [Info] Deleting directory for code: test_task3
+[2023-07-31 17:22:41.062] [Error] Failed to remove directory 'test_task3': No such file or directory (os error 2)
+[2023-07-31 17:22:41.063] [Info] Deleting task in database by code
+[2023-07-31 17:22:41.066] [Info] Deletion of task in database by code completed
+[2023-07-31 17:22:41.067] [Info] Deleting directory for code: task1
+[2023-07-31 17:22:41.068] [Error] Failed to remove directory 'task1': No such file or directory (os error 2)
+[2023-07-31 17:22:41.069] [Info] Deleting task in database by code
+[2023-07-31 17:22:41.072] [Info] Deletion of task in database by code completed
+[2023-07-31 17:22:41.072] [Info] Deleting directory for code: task2
+[2023-07-31 17:22:41.073] [Error] Failed to remove directory 'task2': No such file or directory (os error 2)
+[2023-07-31 17:22:41.074] [Info] Deleting task in database by code
+[2023-07-31 17:22:41.077] [Info] Deletion of task in database by code completed
+[2023-07-31 17:22:41.078] [Info] Deleting directory for code: task3
+[2023-07-31 17:22:41.079] [Error] Failed to remove directory 'task3': No such file or directory (os error 2)
+[2023-07-31 17:22:41.079] [Info] Deleting task in database by code
+[2023-07-31 17:22:41.082] [Info] Deletion of task in database by code completed
+[2023-07-31 17:22:43.323] [Warn] Received SIGINT. Requesting shutdown.

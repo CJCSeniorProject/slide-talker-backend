@@ -3,10 +3,14 @@ mod controller;
 mod database;
 mod logger;
 mod model;
+mod timer;
 mod utils;
 mod worker;
 
-use api::{download, gen_video, get_file_path, get_video, set_email, test_fn};
+#[cfg(test)]
+mod tests;
+
+use api::{download, gen_video, get_file_path, get_video, set_email};
 use dotenv::dotenv;
 use rocket::{
   self, catch, catchers,
@@ -52,6 +56,7 @@ async fn main() {
   logger::init_logger(log::LevelFilter::Info);
   database::init_db();
 
+  tokio::spawn(timer::start());
   let (tx, rx) = tokio::sync::mpsc::channel(100);
   tokio::spawn(worker::start_worker(rx));
 
@@ -62,14 +67,7 @@ async fn main() {
     )
     .mount(
       "/",
-      routes![
-        gen_video,
-        set_email,
-        get_video,
-        download,
-        get_file_path,
-        test_fn
-      ],
+      routes![gen_video, set_email, get_video, download, get_file_path,],
     )
     .attach(CORS)
     .manage(tx.clone())

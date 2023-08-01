@@ -1,10 +1,10 @@
 use crate::controller::{
-  delete_file_in_dir, gen_subtitle, merge_avatar_video_chunks, merge_video_and_avatar_video,
-  merge_video_and_subtitle, mp4_to_wav, run_gen_video_python, send_email,
+  gen_subtitle, merge_avatar_video_chunks, merge_video_and_avatar_video, merge_video_and_subtitle,
+  mp4_to_wav, run_gen_video_python, send_email,
 };
 use crate::database;
 use crate::model::{task, worker};
-
+use crate::utils::*;
 use tokio::sync::mpsc::Receiver;
 
 pub async fn start_worker(mut rx: Receiver<worker::Request>) {

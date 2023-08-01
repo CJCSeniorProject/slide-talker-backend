@@ -1,14 +1,14 @@
+use crate::utils::*;
 use ansi_term::Colour;
-use chrono::Local;
 use env_logger::Target;
 use log::{Level, LevelFilter};
 use regex;
-use std::{fs::OpenOptions, io::Write};
+use std::{env, fs::OpenOptions, io::Write};
 
 pub fn init_logger(level: LevelFilter) {
-  let now = Local::now().format("%Y-%m-%d");
-  let file_name = format!("logfile/{}.txt", now);
-  eprintln!("log file name={}", file_name);
+  let now = get_date();
+  let root = env::var("ROOT").expect("Failed to get root path");
+  let file_name = format!("{}/logfiles/{}.txt", root, now);
 
   let file = OpenOptions::new()
     .create(true)
@@ -32,7 +32,7 @@ pub fn init_logger(level: LevelFilter) {
 
       let message = format!(
         "[{}] [{}] {}",
-        Local::now().format("%Y-%m-%d %H:%M:%S%.3f"),
+        get_datetime().format("%Y-%m-%d %H:%M:%S%.3f"),
         level_style,
         record.args()
       );
