@@ -3,6 +3,7 @@ use rocket::{
   FromForm,
 };
 use serde::{Deserialize, Serialize};
+
 #[derive(FromForm, Serialize, Deserialize)]
 pub struct Request {
   #[field(validate = validate_email())]

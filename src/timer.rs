@@ -54,6 +54,7 @@ pub fn delete_logfile() -> Result<(), Error> {
 }
 
 pub fn delete_data() -> Result<(), Error> {
+  // 刪除存放超過一周的資料
   let codes = handle(database::search_task_by_date(), "Searching task by date")?;
 
   for code in codes.clone() {

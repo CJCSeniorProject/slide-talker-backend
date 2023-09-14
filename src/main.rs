@@ -10,7 +10,7 @@ mod worker;
 #[cfg(test)]
 mod tests;
 
-use api::{download, gen_video, get_file_path_for_code, get_video, set_email};
+use api::*;
 use dotenv::dotenv;
 use rocket::{
   self, catch, catchers,
@@ -18,6 +18,7 @@ use rocket::{
   http::Header,
   routes, {Request, Response},
 };
+
 pub struct CORS;
 
 #[rocket::async_trait]
@@ -50,6 +51,11 @@ fn handle_processing(_: &Request) -> &'static str {
   "Processing"
 }
 
+#[catch(498)]
+fn handle_code_undefind(_: &Request) -> &'static str {
+  "Code undefind"
+}
+
 #[tokio::main]
 async fn main() {
   dotenv().ok();
@@ -57,26 +63,37 @@ async fn main() {
   database::init_db();
 
   tokio::spawn(timer::start());
-  let (tx, rx) = tokio::sync::mpsc::channel(100);
-  tokio::spawn(worker::start_worker(rx));
+  let (mtx, mrx) = tokio::sync::mpsc::channel::<model::worker::MergeSubsRequest>(100);
+  let (tx, rx) = tokio::sync::mpsc::channel::<model::worker::GenVideoRequest>(100);
+  tokio::spawn(worker::start_gen_video_worker(rx, mtx.clone()));
+  tokio::spawn(worker::start_merge_subs_worker(mrx));
 
   let server = rocket::build()
     .register(
       "/",
-      catchers![handle_unprocessable_entity, handle_processing],
+      catchers![
+        handle_unprocessable_entity,
+        handle_processing,
+        handle_code_undefind
+      ],
     )
     .mount(
       "/",
       routes![
         gen_video,
         set_email,
-        get_video,
+        check_task_status,
         download,
         get_file_path_for_code,
+        set_subtitle
       ],
     )
     .attach(CORS)
-    .manage(tx.clone())
+    // .manage(tx.clone())
+    .manage(model::worker::Sender {
+      gen_sender: tx,
+      merge_sender: mtx,
+    })
     .launch();
 
   tokio::select! {

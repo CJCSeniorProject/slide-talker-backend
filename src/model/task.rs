@@ -1,5 +1,14 @@
 use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, Value, ValueRef};
 
+#[derive(Debug)]
+pub struct Task {
+  pub code: String,
+  pub status: Status,
+  pub subs_status: Status,
+  pub video_status: Status,
+}
+
+#[derive(Debug)]
 pub enum Status {
   Fail,
   Processing,

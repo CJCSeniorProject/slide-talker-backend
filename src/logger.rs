@@ -3,11 +3,23 @@ use ansi_term::Colour;
 use env_logger::Target;
 use log::{Level, LevelFilter};
 use regex;
-use std::{env, fs::OpenOptions, io::Write};
+use std::{
+  env,
+  fs::{self, OpenOptions},
+  io::Write,
+  path::Path,
+};
 
 pub fn init_logger(level: LevelFilter) {
-  let now = get_date();
   let root = env::var("ROOT").expect("Failed to get root path");
+  let logfiles = format!("{}/logfiles/", root);
+  let path = Path::new(logfiles.as_str());
+
+  if !path.exists() {
+    fs::create_dir_all(&path).expect("Failed to create logfiles");
+  }
+
+  let now = get_date();
   let file_name = format!("{}/logfiles/{}.txt", root, now);
 
   let file = OpenOptions::new()

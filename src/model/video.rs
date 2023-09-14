@@ -4,15 +4,8 @@ use rocket::{
   http::ContentType,
   FromForm,
 };
-use serde::Serialize;
 
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct Response {
-  pub code: String,
-}
-
-#[derive(FromForm)]
+#[derive(FromForm, Debug)]
 pub struct Request<'a> {
   #[field(validate = validate_video())]
   pub video: TempFile<'a>,
@@ -22,7 +15,10 @@ pub struct Request<'a> {
   pub x: f32,
   #[field(validate = validate_range_0_to_1())]
   pub y: f32,
-  pub shape: &'a str,
+  pub shape: String,
+  #[field(default = true)]
+  pub remove_bg: bool,
+  #[field(default = false)]
   pub subtitle: bool,
 }
 

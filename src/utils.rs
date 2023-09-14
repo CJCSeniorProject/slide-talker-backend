@@ -84,6 +84,7 @@ pub fn create_code_dir(code: &str) -> Result<String, Error> {
 }
 
 pub fn delete_file_in_dir(code: &str) -> Result<(), Error> {
+  // 刪除除了files_to_keep以外的檔案
   log::info!("Deleting files in directory by code: {}", code);
 
   let gen = handle(get_file_path(code, "gen"), "Getting file path")?;
@@ -129,6 +130,7 @@ pub fn delete_file_in_dir(code: &str) -> Result<(), Error> {
       }
     }
   }
+
   log::info!("Deletion of files in directory by code: {} completed", code);
   Ok(())
 }
@@ -194,10 +196,10 @@ pub fn generate_rand_code() -> String {
   code
 }
 
-pub async fn make_request(
-  url: &str,
-  map: &HashMap<&str, String>,
-) -> Result<reqwest::Response, Error> {
+pub async fn make_request<T>(url: &str, map: &HashMap<&str, T>) -> Result<reqwest::Response, Error>
+where
+  T: serde::Serialize,
+{
   let client = reqwest::Client::new();
   handle(client.post(url).json(map).send().await, "Requesting")
 }

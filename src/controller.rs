@@ -1,8 +1,9 @@
-use crate::{model::constant::*, utils::*};
+use crate::{database, model::constant::*, utils::*};
 use lettre::{
   message::header::ContentType, transport::smtp::authentication::Credentials, Message,
   SmtpTransport, Transport,
 };
+use serde_json::Value;
 use std::collections::HashMap;
 
 pub async fn mp4_to_wav(code: &str) -> Result<(), Error> {
@@ -31,7 +32,7 @@ pub async fn mp4_to_wav(code: &str) -> Result<(), Error> {
   }
 }
 
-pub async fn run_gen_video_python(code: &str) -> Result<(), Error> {
+pub async fn run_gen_video_python(code: &str, remove_bg: bool) -> Result<(), Error> {
   log::info!("Running gen video Python script for code: {}", code);
 
   let mut map = HashMap::new();
@@ -39,10 +40,25 @@ pub async fn run_gen_video_python(code: &str) -> Result<(), Error> {
     "audio_path",
     handle(get_file_path(code, AUDIO_FILE), "Inserting audio_path")?,
   );
-  map.insert(
-    "image_path",
-    handle(get_file_path(code, AVATAR_FILE), "Inserting image_path")?,
-  );
+
+  if remove_bg {
+    map.insert(
+      "image_path",
+      handle(
+        get_file_path(code, DEBG_AVATAR_FILE),
+        &format!("Inserting image_path({})", DEBG_AVATAR_FILE),
+      )?,
+    );
+  } else {
+    map.insert(
+      "image_path",
+      handle(
+        get_file_path(code, AVATAR_FILE),
+        &format!("Inserting image_path({})", AVATAR_FILE),
+      )?,
+    );
+  }
+
   map.insert(
     "result_dir",
     handle(create_dir(code, GEN_DIR), "Inserting result_dir")?,
@@ -92,8 +108,8 @@ pub async fn merge_avatar_video_chunks(code: &str) -> Result<(), Error> {
 
 pub async fn merge_video_and_avatar_video(
   code: &str,
-  x: &f32,
-  y: &f32,
+  x: f32,
+  y: f32,
   shape: &str,
 ) -> Result<(), Error> {
   log::info!("Merging video and avatar video for code: {}", code);
@@ -139,8 +155,8 @@ pub async fn gen_subtitle(code: &str) -> Result<(), Error> {
     handle(get_file_path(code, AUDIO_FILE), "Inserting file_path")?,
   );
   map.insert(
-    "save_path",
-    handle(create_file(code, SUBS_FILE), "Inserting save_path")?,
+    "output_path",
+    handle(create_file(code, SUBS_FILE), "Inserting output_path")?,
   );
 
   let response = handle(
@@ -159,25 +175,26 @@ pub async fn gen_subtitle(code: &str) -> Result<(), Error> {
 pub async fn merge_video_and_subtitle(code: &str) -> Result<(), Error> {
   log::info!("Merging video and subtitle subtitle for code: {}", &code);
 
-  let mut map = HashMap::new();
-  map.insert(
-    "video_path",
-    handle(get_file_path(code, RESULT_FILE), "Inserting video_path")?,
-  );
-  map.insert(
-    "subtitle_path",
-    handle(get_file_path(code, SUBS_FILE), "Inserting subtitle_path")?,
-  );
-  map.insert(
-    "output_path",
-    handle(
-      create_file(code, RESULT_WITH_SUBS_FILE),
-      "Inserting output_path",
-    )?,
-  );
+  let subtitles = handle(
+    database::get_subtitles(code),
+    &format!("Getting subtitles for code: {}", code),
+  )?;
+
+  let video_path = handle(get_file_path(code, RESULT_FILE), "Inserting video_path")?;
+
+  let output_path = handle(
+    create_file(code, RESULT_WITH_SUBS_FILE),
+    "Inserting output_path",
+  )?;
+
+  let mut data = HashMap::new();
+
+  data.insert("subtitles", serde_json::to_value(subtitles)?);
+  data.insert("video_path", Value::String(video_path));
+  data.insert("output_path", Value::String(output_path));
 
   let response = handle(
-    make_request("http://localhost:5000/merge_video_and_subtitle", &map).await,
+    make_request("http://localhost:5000/set_subtitle", &data).await,
     "Making request",
   )?;
 
@@ -226,4 +243,30 @@ pub fn send_email(email: &str, code: &str, success: bool) -> Result<(), Error> {
 
   log::info!("Email sent successfully!");
   Ok(())
+}
+
+pub async fn remove_background(code: &str) -> Result<(), Error> {
+  log::info!("Removing background for code: {}", &code);
+
+  let mut data = HashMap::new();
+  data.insert(
+    "image_path",
+    handle(get_file_path(code, AVATAR_FILE), "Inserting image_path")?,
+  );
+  data.insert(
+    "output_path",
+    handle(create_file(code, DEBG_AVATAR_FILE), "Inserting output_path")?,
+  );
+
+  let response = handle(
+    make_request("http://localhost:5000/rmbackground", &data).await,
+    "Making request",
+  )?;
+
+  if response.status().is_success() {
+    log::info!("Python remove background success");
+    Ok(())
+  } else {
+    Err(Error::new(ErrorKind::Other, ""))
+  }
 }
