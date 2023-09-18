@@ -3,6 +3,9 @@ use std::{env, fs};
 use tokio::time::sleep;
 
 pub async fn start() {
+  log::info!("Starting timmer!");
+  let _ = handle(delete_logfile(), "Deleting logfile");
+  let _ = handle(delete_data(), "Deleting data");
   loop {
     let tomorrow_midnight = get_tomorrow_midnight();
     let duration = tomorrow_midnight - get_datetime();

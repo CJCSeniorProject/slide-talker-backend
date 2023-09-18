@@ -89,7 +89,6 @@ async fn main() {
       ],
     )
     .attach(CORS)
-    // .manage(tx.clone())
     .manage(model::worker::Sender {
       gen_sender: tx,
       merge_sender: mtx,

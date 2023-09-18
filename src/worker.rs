@@ -28,17 +28,6 @@ pub async fn start_gen_video_worker(
     let subtitle = request.subtitle;
     let remove_bg = request.remove_bg;
 
-    // 生成字幕
-    if subtitle {
-      if let Err(_) = handle(
-        gen_subtitle(code).await,
-        &format!("Running gen_subtitle for code: {}", code),
-      ) {
-        let _ = result(code, false);
-        continue;
-      }
-    }
-
     // 移除背景
     if remove_bg {
       if let Err(_) = handle(
@@ -57,6 +46,17 @@ pub async fn start_gen_video_worker(
     ) {
       let _ = result(code, false);
       continue;
+    }
+
+    // 生成字幕
+    if subtitle {
+      if let Err(_) = handle(
+        gen_subtitle(code).await,
+        &format!("Running gen_subtitle for code: {}", code),
+      ) {
+        let _ = result(code, false);
+        continue;
+      }
     }
 
     // 生成頭像模擬影片
