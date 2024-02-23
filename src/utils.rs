@@ -2,6 +2,7 @@ use crate::model::constant::*;
 use chrono::{Duration, Local, NaiveDate, NaiveDateTime};
 use rand::Rng;
 use reqwest;
+use rocket::http::Status;
 pub use std::io::{Error, ErrorKind};
 use std::{
   collections::HashMap,
@@ -22,6 +23,15 @@ where
     Error::new(ErrorKind::Other, err_msg)
   })
 }
+
+// pub fn error_to_status(err: Error) -> Status {
+//   match err.kind() {
+//     ErrorKind::NotFound => Status::NotFound,
+//     ErrorKind::PermissionDenied => Status::Forbidden,
+//     ErrorKind::ConnectionRefused => Status::ServiceUnavailable,
+//     _ => Status::InternalServerError, // 對於未特別處理的錯誤，回傳內部伺服器錯誤
+//   }
+// }
 
 pub fn get_file_path(code: &str, filename: &str) -> Result<String, Error> {
   log::debug!("Getting path of file '{}' for code: {}", filename, code);

@@ -1,14 +1,13 @@
-[global.limits]
-form = 1073741824
-file = 1073741824
-data-form = 1073741824
+# [global.limits]
+# form = 1073741824
+# file = 1073741824
+# data-form = 1073741824
 
-# [development]
-# address = "localhost"
-# port = 8000
-# # workers = [number of cpus * 2]
-# keep_alive = 5
-# read_timeout = 5
-# write_timeout = 5
-# log = "normal"
-# limits = { forms = 32768 }
+[debug]
+address = "127.0.0.1"
+port = 8000
+workers = 20
+keep_alive = 5
+log_level = "critical"
+limits = { forms = 1073741824, form = 1073741824, file = 1073741824, data-form = 1073741824 }
+tls = "disabled"

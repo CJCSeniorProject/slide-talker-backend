@@ -18,7 +18,7 @@ pub struct Request<'a> {
   pub shape: String,
   #[field(default = true)]
   pub remove_bg: bool,
-  #[field(default = false)]
+  #[field(default = true)]
   pub subtitle: bool,
 }
 

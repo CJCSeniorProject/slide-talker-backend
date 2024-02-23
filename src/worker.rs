@@ -2,6 +2,7 @@ use crate::{
   controller::*,
   database,
   model::{
+    constant::*,
     task::{
       Status::{Fail, Finish},
       Task,
@@ -10,6 +11,7 @@ use crate::{
   },
   utils::*,
 };
+use std::collections::HashMap;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 pub async fn start_gen_video_worker(
@@ -96,14 +98,58 @@ pub async fn start_gen_video_worker(
     };
 
     if subtitle {
-      // send request to merge worker
-      let request = worker::MergeSubsRequest { code: code.clone() };
-      log::debug!("request={:?}", request);
+      // let subtitles = handle(
+      //   database::get_subtitles(code),
+      //   &format!("Getting subtitles for code: {}", code),
+      // )?;
 
-      if let Err(_) = handle(tx.try_send(request), "Sending request to merge worker") {
+      let video_path: String;
+      let output_path: String;
+      let subtitles_path: String;
+
+      if let Ok(p) = handle(get_file_path(code, SUBS_FILE), "Inserting subtitles_path") {
+        subtitles_path = p;
+      } else {
         let _ = result(code, false);
         continue;
       };
+
+      if let Ok(p) = handle(get_file_path(code, RESULT_FILE), "Inserting video_path") {
+        video_path = p;
+      } else {
+        let _ = result(code, false);
+        continue;
+      };
+
+      if let Ok(p) = handle(
+        create_file(code, RESULT_WITH_SUBS_FILE),
+        "Inserting output_path",
+      ) {
+        output_path = p;
+      } else {
+        let _ = result(code, false);
+        continue;
+      };
+
+      let mut data = HashMap::new();
+
+      data.insert("subtitle_path", subtitles_path);
+      data.insert("video_path", video_path);
+      data.insert("output_path", output_path);
+
+      let response = handle(
+        make_request("http://localhost:5000/merge_video_and_subtitle", &data).await,
+        "Making request",
+      )
+      .unwrap();
+
+      if response.status().is_success() {
+        log::info!("Python merge video and subtitle subtitle success");
+        let _ = result(code, true);
+      } else {
+        let _ = result(code, false);
+        continue;
+      }
     } else {
       let _ = result(code, true);
     }
